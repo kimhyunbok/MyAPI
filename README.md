@@ -1,9 +1,10 @@
 # MyAPI
 
 ※ Code Korea Challenge 2015 클라우드기반의 국민 소프트웨어 개발공모전 은상 작품입니다.(행정자치부 한국정보화진흥원 주관)
+
 1. APP 명 : MY API (공공API 모음)
 
-2. 개발 동기 : 
+2. 개발 동기 :
  1) 공공 OPEN API를 하나의 APP에서 모두 관리/사용할 수 있도록 하여 편의성을 제공.
  2) 모든 연령층의 사용자가 OPEN API의 유용한 정보를 선택적으로 쉽게 사용할 수 있도록 용이성 제공.
  3) 초급 개발자나 일반인도 쉽게 공공 OPEN API를 사용한 앱을 개발할 수 있도록 소스 공개.
@@ -14,7 +15,7 @@
  . DAUM API : 내위치검색, 내주변검색, 맛집검색, 레시피검색, 여행검색, 최저가검색 (6개 API 지원)
  . SK플래닛 API : 내위치 기상예보, 영화순위, 멜론순위 (3개 API 지원)
  . 기타 부가기능 : 나침반, html5게임
-
+ 
 4. 시스템 구성도
  1) MY API 단말사용자는 cross domain ajax 해소를 위해 jsonp 프로토콜로 open PaaS에 데이터를 요청.
  2) API data 요청을 받은 Open PaaS는 API 제공자에게서 발급받은 API KEY와 referel를 추가하여 API end point와 통신. (API KEY 노출 방지, referel check : 보안 강화)
