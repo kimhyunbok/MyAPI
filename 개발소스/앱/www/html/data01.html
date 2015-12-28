@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="utf-8">
+	<meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="my api">
+    <meta name="author" content="poppppp">
+    <link rel="icon" href="../favicon.ico">
+
+    <title>My API</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="../css/jquery-ui.css" rel="stylesheet">
+	<link href="../css/dashboard.css" rel="stylesheet">
+    <link href="../css/theme.css" rel="stylesheet">
+	<link href="../css/showLoading.css" rel="stylesheet">
+	<!--link href="./css/sticky-footer.css" rel="stylesheet"-->
+
+    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
+    <script type="text/javascript" src="../cordova.js"></script>
+	<script type="text/javascript" src="../js/jquery-1.11.3.js"></script>
+	<script type="text/javascript" src="../js/jquery-ui.js"></script>
+	<script type="text/javascript" src="../js/jquery.showLoading.min.js"></script>
+    <script type="text/javascript" src="../js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../js/common.js"></script>
+	
+	<script type="text/javascript">
+	$(document).ready(function(){
+		//select design
+		
+	});
+	var Request = function()
+	{
+	    this.getParameter = function( name )
+	    {
+	        var rtnval = '';
+	        var nowAddress = unescape(location.search);
+	        var parameters = (nowAddress.slice(nowAddress.indexOf('?')+1,nowAddress.length)).split('&');
+	        
+	        for(var i = 0 ; i < parameters.length ; i++)
+	        {
+	            var varName = parameters[i].split('=')[0];
+	            if(varName.toUpperCase() == name.toUpperCase())
+	            {
+	                rtnval = parameters[i].split('=')[1];
+	                break;
+	            }
+	        }
+	        return rtnval;
+	    }
+	};
+	
+	var request = new Request();
+	
+	var callApi = "data01";
+	
+	$(document).ready(function(){
+	    
+		var req2 = request.getParameter('req2')==""?"":unescape(request.getParameter('req2'));
+		if (req2 != ""){
+		    $("#req1").val("road");
+		    $("#req2").val(req2);
+		}
+	});
+	
+	function fnSearch(){
+		var pname = "srchwrd";
+		var resname = "newAddressListAreaCd";
+		var dataObj = new Object();
+		dataObj.callApi = callApi;
+		dataObj.searchSe = $("#req1").val();
+		if ($("#req2").val() != ""){
+			dataObj[pname] = $("#req2").val();
+		}else{
+			navigator.notification.alert("검색어를 입력하십시오.",null,alertTitle);
+			return;
+		}
+		
+		//history 등록
+		var histObj = new Object();
+        histObj.call_api = callApi;
+        histObj.data = new Array();
+        var arrTemp = [histObj.call_api, 1, "req1", $("#req1").val(), $("#req1 option:selected").text()];
+        histObj.data.push(arrTemp);
+        arrTemp = [histObj.call_api, 2, "req2", $("#req2").val(), $("#req2").val()];
+        histObj.data.push(arrTemp);
+      
+        webdb.insertNextData(histObj);
+		
+		
+		$("#resTable tbody tr").remove();
+		$(document.body).showLoading();
+		$.ajax({
+			url: dataUrl,
+			method : 'POST',
+			data: dataObj,
+			dataType : "jsonp",
+			jsonp : "callback",
+			success: function(data){
+				if (data[resname] != null){
+					if (!$.isArray(data[resname])){
+						bakData = data[resname];
+						data[resname] = new Array();
+						data[resname][0] = bakData;
+					}
+					
+					for (i=0;i<data[resname].length;i++){
+						$("#format01 table tbody .no").text(i+1);
+						$("#format01 table tbody .zipNo").text(data.newAddressListAreaCd[i].zipNo);
+						$("#format01 table tbody .lnmAdres").text(data.newAddressListAreaCd[i].lnmAdres);
+						$("#format01 table tbody .rnAdres").text(data.newAddressListAreaCd[i].rnAdres);
+						
+						$("#resTable tbody").append($("#format01 table tbody").html());
+					}
+					
+				}else{
+					navigator.notification.alert(alertNoData,null,alertTitle);
+				}
+				$(document.body).hideLoading();
+			},
+			error: function(){
+				$(document.body).hideLoading();
+				navigator.notification.alert(alertNetwork,null,alertTitle);
+			}
+		});
+
+		return;
+	}
+	
+	function fnToMap(){
+	    location.href = "../html/map03.html";
+	    return;
+	}
+	
+	</script>
+  </head>
+
+  <body>
+
+    <div id="includedContent">
+    </div>
+	
+    <div class="container-fluid">
+        <div class="panel cont-primary">
+            <div class="panel-heading">
+                <h3 class="panel-title">새우편번호</h3>
+            </div>
+            <div class="panel-body">
+				<div class="table-type1">
+					<table>
+						<colgroup>
+							<col width="30%" />
+							<col width="*" />
+						</colgroup>
+						<thead>
+							<tr>
+								<th>검색항목명</th>
+								<th>검색항목값</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<th>검색구분</th>
+								<td>
+									<select id="req1" class="select" style="width:99%;">
+										<option value="road">도로명</option>
+										<option value="dong">동(읍/면)명</option>
+									</select>
+								</td>
+							</tr>
+							<tr>
+								<th>검색어</th>
+								<td><input type="text" id="req2" class="input" style="width:99%;" /></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<p class="btn-sec" style="margin-bottom:0px;">
+				    <button type="button" class="btn btn-default" onclick="fnToMap();">지도에서입력</button>
+				    <button type="button" class="btn btn-default" onclick="fnHistory();">최근검색어</button>
+					<button type="button" class="btn btn-default on" onclick="fnSearch();">검색</button>
+				</p>
+            </div>
+        </div>
+		<div class="panel cont-success">
+            <div class="panel-heading">
+                <h3 class="panel-title">응답결과</h3>
+            </div>
+            <div class="panel-body">
+				<div class="table-type1">
+					<table id="resTable">
+						<colgroup>
+							<col width="10%" />
+							<col width="30%" />
+							<col width="*" />
+						</colgroup>
+						<thead>
+							<tr>
+								<th>No.</th>
+								<th>응답명</th>
+								<th>응답값</th>
+							</tr>
+						</thead>
+						<tbody>
+							
+						</tbody>
+					</table>
+				</div>
+            </div>
+        </div>
+
+    </div> <!-- /container -->
+	
+	<div id="format01" style="display:none;">
+		<table>
+			<tbody>
+				<tr>
+					<td align="right" rowspan='3' class="no">1</td>
+					<td>우편번호</td>
+					<td class="zipNo"></td>
+				</tr>
+				<tr>
+					<td>도로명주소</td>
+					<td class="lnmAdres"></td>
+				</tr>
+				<tr>
+					<td>지번주소</td>
+					<td class="rnAdres"></td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	
+	<div id="historyList" class="col-sm-4" style="display:none;">
+      <div id="histListGroup" class="list-group">
+      </div>
+    </div>
+	<p id="back-top">
+		<a href="#top"><span></span></a>
+	</p>
+	
+	<!--footer class="footer">
+      <div class="container">
+        <p class="text-muted">footer 내용.....</p>
+      </div>
+    </footer-->
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    
+    <!-- Just to make our placeholder images work. Don't actually copy the next line! -->
+  </body>
+</html>

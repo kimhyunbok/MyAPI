@@ -1,0 +1,37 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta charset="UTF-8">
+		<script type="text/javascript" src="./cordova.js"></script>
+		<script type="text/javascript" src="./js/jquery-1.11.3.js"></script>
+		<script type="text/javascript" src="./js/common.js"></script>
+        <script type="text/javascript">
+			var callApi = "main";
+			
+			if (window.openDatabase) {
+				webdb.open();
+				webdb.createAppConfigTable();
+				webdb.selectAppConfigData("MAIN_PAGE");
+			}else{
+				window.location.href = "html/main.html";
+			}
+            
+			var fnGetAppConfigData = function(tx, rs){
+				if (rs.rows.length > 0){
+					configData = rs.rows.item(0).CONFIG_DATA;
+					
+					if (configData=="favorite"){
+						window.location.href = "html/favorite.html";
+					}else{
+						window.location.href = "html/main.html";
+					}
+				}else{
+					window.location.href = "html/main.html";
+				}
+			};
+        </script>
+        <title>My API</title>
+    </head>
+    <body>
+    </body>
+</html>

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="utf-8">
+	<meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="my api">
+    <meta name="author" content="poppppp">
+    <link rel="icon" href="../favicon.ico">
+
+    <title>My API</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="../css/jquery-ui.css" rel="stylesheet">
+	<link href="../css/dashboard.css" rel="stylesheet">
+    <link href="../css/theme.css" rel="stylesheet">
+    <link href="../css/showLoading.css" rel="stylesheet">
+	<!--link href="./css/sticky-footer.css" rel="stylesheet"-->
+
+    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
+    <script type="text/javascript" src="../cordova.js"></script>
+	<script type="text/javascript" src="../js/jquery-1.11.3.js"></script>
+	<script type="text/javascript" src="../js/jquery-ui.js"></script>
+	<script type="text/javascript" src="../js/jquery.showLoading.min.js"></script>
+    <script type="text/javascript" src="../js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../js/common.js"></script>
+	
+	<script type="text/javascript">
+	
+	
+	$(document).ready(function(){
+		
+	});
+	
+	
+	
+	//$(document).on("click","#resTable tbody .title",function(){fnDetail($(this).parent().find(".seq").val());});
+	
+	var globalData = null;
+	var globalSeq = 1;
+	var globalTotalCount = 0;
+	var serviceName = "ListAirQualityByDistrictService";
+	var callApi = "seoul07";
+	
+	function fnSearch(){
+		
+		var dataObj = new Object();
+		dataObj.paramStr = serviceName+"/1/100/"+$("#p1").val()+"/";
+		
+		//history 등록
+		if ($("#p1").val() != "" ){
+    		var histObj = new Object();
+            histObj.call_api = callApi;
+            histObj.data = new Array();
+            var arrTemp = [histObj.call_api, 1, "p1", $("#p1").val(), $("#p1 option:selected").text()];
+            histObj.data.push(arrTemp);
+          
+            webdb.insertNextData(histObj);
+        }
+		
+		$("#resTable tbody tr").remove();
+		$(document.body).showLoading();
+		$.ajax({
+			url: dataSeoulUrl,
+			method : 'POST',
+			data: dataObj,
+			dataType : "jsonp",
+			jsonp : "callback",
+			success: function(data){
+				globalData = data;
+				globalSeq = 1;
+				console.log(data);
+				if (data[serviceName] != null){
+					
+					if (!$.isArray(data[serviceName].row)){
+						bakData = data[serviceName].row;
+						data[serviceName].row = new Array();
+						data[serviceName].row[0] = bakData;
+					}
+					
+					$("#totalCnt").text("("+data[serviceName].list_total_count+")");
+					globalTotalCount = data[serviceName].list_total_count;
+					for (i=0;i<data[serviceName].row.length;i++){
+						$("#format01 table tbody tr td:even").text("");
+						$("#format01 table tbody .no").text(i+1+ (globalSeq-1) * 10 );
+					
+						$("#format01 table tbody .MSRADMCODE").val(data[serviceName].row[i].MSRADMCODE);
+						$("#format01 table tbody .MSRSTENAME").text(data[serviceName].row[i].MSRSTENAME);
+						$("#format01 table tbody .MAXINDEX").text(data[serviceName].row[i].MAXINDEX);
+						$("#format01 table tbody .GRADE").text(data[serviceName].row[i].GRADE);
+						
+						$("#format01 table tbody .POLLUTANT").text($("#format01 table tbody ."+data[serviceName].row[i].POLLUTANT).prev().text());
+						$("#format01 table tbody .NITROGEN").text(data[serviceName].row[i].NITROGEN);
+						$("#format01 table tbody .OZONE").text(data[serviceName].row[i].OZONE);
+						$("#format01 table tbody .CARBON").text(data[serviceName].row[i].CARBON);
+						$("#format01 table tbody .SULFUROUS").text(data[serviceName].row[i].SULFUROUS);
+						$("#format01 table tbody .PM10").text(data[serviceName].row[i].PM10);
+						$("#format01 table tbody .PM25").text(data[serviceName].row[i].PM25);
+						$("#format01 table tbody .MSRDATE").text(data[serviceName].row[i].MSRDATE);
+						
+						$("#resTable tbody").append($("#format01 table tbody").html());
+					}
+					
+				}else{
+					navigator.notification.alert(alertNoData,null,alertTitle);
+				}
+				$(document.body).hideLoading();
+			},
+			error: function(){
+				globalData = null;
+				globalSeq = 1;
+				globalTotalCount = 0;
+				$(document.body).hideLoading();
+				navigator.notification.alert(alertNetwork,null,alertTitle);
+			}
+		});
+
+		return;
+	}
+	
+	
+	</script>
+
+  </head>
+
+  <body>
+
+    <div id="includedContent">
+    </div>
+	
+    <div class="container-fluid">
+        <div class="panel">
+            <div class="panel-heading">
+                <h3 class="panel-title">실시간 대기환경정보(서울시)</h3>
+            </div>
+            <div class="panel-body">
+				<div class="table-type1">
+					<table>
+						<colgroup>
+							<col width="30%" />
+							<col width="*" />
+						</colgroup>
+						<thead>
+							<tr>
+								<th>검색항목명</th>
+								<th>검색항목값</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<th>측정소</th>
+								<td>
+									<select id="p1" class="select" style="width:99%;">
+										<option value="">-전체-</option>
+										<option value="111123">종로구</option>
+										<option value="111121">중구</option>
+										<option value="111131">용산구</option>
+										<option value="111142">성동구</option>
+										<option value="111141">광진구</option>
+										<option value="111152">동대문구</option>
+										<option value="111151">중랑구</option>
+										<option value="111161">성북구</option>
+										<option value="111291">강북구</option>
+										<option value="111171">도봉구</option>
+										<option value="111311">노원구</option>
+										<option value="111181">은평구</option>
+										<option value="111191">서대문구</option>
+										<option value="111201">마포구</option>
+										<option value="111301">양천구</option>
+										<option value="111212">강서구</option>
+										<option value="111221">구로구</option>
+										<option value="111281">금천구</option>
+										<option value="111231">영등포구</option>
+										<option value="111241">동작구</option>
+										<option value="111251">관악구</option>
+										<option value="111262">서초구</option>
+										<option value="111261">강남구</option>
+										<option value="111273">송파구</option>
+										<option value="111274">강동구</option>
+									</select>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<p class="btn-sec">
+				    <button type="button" class="btn btn-default" onclick="fnHistory();">최근검색어</button>
+					<button type="button" class="btn btn-default on" onclick="fnSearch();">검색</button>
+				</p>
+            </div>
+        </div>
+		<div id="tMain" class="panel">
+            <div class="panel-heading">
+                <h3 class="panel-title">응답결과 <span id="totalCnt"></span></h3>
+            </div>
+            <div class="panel-body">
+				<div class="table-type1">
+					<table id="resTable">
+						<colgroup>
+							<col width="10%" />
+							<col width="30%" />
+							<col width="*" />
+						</colgroup>
+						<thead>
+							<tr>
+								<th>No.</th>
+								<th>응답명</th>
+								<th>응답값</th>
+							</tr>
+						</thead>
+						<tbody>
+							
+						</tbody>
+					</table>
+				</div>
+            </div>
+        </div>
+        
+
+    </div> <!-- /container -->
+	
+	<div id="format01" style="display:none;">
+		<table>
+			<tbody>
+				<tr>
+					<td align="right" rowspan='11' class="no">1</td>
+					<td>측정소명
+						<input type="hidden" class="MSRADMCODE" />
+					</td>
+					<td class="MSRSTENAME">
+					</td>
+				</tr>
+				<tr>
+					<td>통합대기환경지수</td>
+					<td class="MAXINDEX"></td>
+				</tr>
+				<tr>
+					<td>통합대기환경지수 등급</td>
+					<td class="GRADE"></td>
+				</tr>
+				<tr>
+					<td>지수결정물질</td>
+					<td class="POLLUTANT"></td>
+				</tr>
+				<tr>
+					<td>이산화질소(단위:ppm)</td>
+					<td class="NITROGEN NO2"></td>
+				</tr>
+				<tr>
+					<td>오존(단위:ppm)</td>
+					<td class="OZONE O3"></td>
+				</tr>
+				<tr>
+					<td>일산화탄소(단위:ppm)</td>
+					<td class="CARBON CO"></td>
+				</tr>
+				<tr>
+					<td>아황산가스(단위:ppm)</td>
+					<td class="SULFUROUS SO2"></td>
+				</tr>
+				<tr>
+					<td>미세먼지(단위:㎍/㎥)</td>
+					<td class="PM10"></td>
+				</tr>
+				<tr>
+					<td>초미세먼지(단위:㎍/㎥)</td>
+					<td class="PM25"></td>
+				</tr>
+				<tr>
+					<td>측정일시</td>
+					<td class="MSRDATE"></td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	
+	<div id="historyList" class="col-sm-4" style="display:none;">
+      <div id="histListGroup" class="list-group">
+      </div>
+    </div>
+    <p id="back-top">
+		<a href="#top"><span></span></a>
+	</p>
+	
+	<!--footer class="footer">
+      <div class="container">
+        <p class="text-muted">footer 내용.....</p>
+      </div>
+    </footer-->
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    
+    <!-- Just to make our placeholder images work. Don't actually copy the next line! -->
+
+  </body>
+</html>

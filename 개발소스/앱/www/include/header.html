@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<nav class="navbar navbar-inverse navbar-fixed-top">
+	<div class="container-fluid"> 
+		<div class="navbar-header">
+			<a class="navbar-brand" href="../index.html"><img src="../img/logo-txt.png" width="130" height="37" alt="MY API"></a>
+			<div class="btn-toggle">
+				<button id="navBtn" type="button" class="navbar-toggle help collapsed" onclick="fnHelp();"><span class="icon-help"></span></button>
+				<button id="navBtn" type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar"> <span class="sr-only">Toggle navigation</span> <span class="icon-bar"></span> <span class="icon-bar"></span> <span class="icon-bar"></span> </button>
+				<!-- <button id="navBtn" type="button" class="navbar-toggle-help collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar"> <span class="sr-only">도움말</span> <span class="icon-help"></span> </button> -->
+			</div>
+		</div>
+		<div id="navbar" class="navbar-collapse collapse">
+			<ul class="nav navbar-nav navbar-right">
+				<li><a href="../index.html">Home</a></li>
+				<li><a href="../html/main.html">API 메인</a></li>
+				<li><a href="../html/favorite.html">즐겨찾기</a></li>
+				<li><a href="../html/config.html">환경설정</a></li>
+				<!--li><a href="#none">공지사항</a></li-->
+				<li><a href="#none" onclick="navigator.app.exitApp();">종료</a></li>
+			</ul>
+			<!--form class="navbar-form navbar-right">
+				<input type="text" class="form-control" placeholder="검색어를 입력하십시오...">
+			  </form--> 
+		</div>
+	</div>
+</nav>
+</html>

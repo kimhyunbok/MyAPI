@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="utf-8">
+	<meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="my api">
+    <meta name="author" content="poppppp">
+    <link rel="icon" href="../favicon.ico">
+
+    <title>My API</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+	<link href="../css/jquery-ui.css" rel="stylesheet">
+	<link href="../css/dashboard.css" rel="stylesheet">
+    <link href="../css/theme.css" rel="stylesheet">
+	<link href="../css/showLoading.css" rel="stylesheet">
+	<!--link href="../css/sticky-footer.css" rel="stylesheet"-->
+
+    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
+	<script type="text/javascript" src="../cordova.js"></script>
+	<script type="text/javascript" src="../js/jquery-1.11.3.js"></script>
+	<script type="text/javascript" src="../js/jquery-ui.js"></script>
+	<script type="text/javascript" src="../js/jquery.ui.touch-punch.js"></script>
+	<script type="text/javascript" src="../js/jquery.showLoading.min.js"></script>
+    <script type="text/javascript" src="../js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="../js/common.js"></script>
+	<script type="text/javascript">
+	document.addEventListener("deviceready", onDeviceReady, false);
+
+    function onDeviceReady(){
+        document.addEventListener("backbutton", function(e){
+           navigator.notification.confirm("My API앱을 종료하시겠습니까?",fnEnd,endTitle,confirmYN);
+        }, false);
+    }
+    
+    var fnEnd = function(buttonIndex){
+		if (buttonIndex == 1){
+		    navigator.app.exitApp();
+		}
+	};
+	
+	
+	var callApi = "main";
+	var timer;
+	var selectApi = "";
+	
+	$(function(){
+      
+      //defaultList();
+      
+	  $(document).on('mousedown', ".apiList li button" ,function(){      
+	      longpress=true;
+	      selectApi = $(this).parent().attr("data-api");
+		  timer = setTimeout(function() {    
+		      if(longpress){
+			      longpress=false;
+			      clearTimeout(timer);
+			      
+				  navigator.notification.confirm(confirmFavorite,fnConfirm,favoriteTitle,confirmYN);
+				  //fnConfirm(1);
+			  }
+		  }, 1000);
+	  });
+	  $(document).on('mouseup', ".apiList li button" ,function(){      
+		longpress=false; 
+		if (timer){
+            clearTimeout(timer);
+		}
+	  });
+	  
+	  
+    });
+	
+	
+	
+	var defaultList = function(){
+		$("#sortable").append($("#format01 ul li"));
+	};
+	
+	var fnConfirm = function(buttonIndex){
+	    
+		if (buttonIndex == 1){
+		    if (window.openDatabase) {
+    		    webdb.open();
+    		    webdb.createAppConfigTable();
+    		    webdb.selectAppConfigData("FAVORITE_ORDER");
+		    }
+		}
+	};
+	
+	var fnGetAppConfigData = function(tx, rs){
+	    var orderData = "";
+		if (rs.rows.length > 0){
+			orderData = rs.rows.item(0).CONFIG_DATA;
+			
+			//이미 즐겨찾기에 등록된 데이터 인지 확인
+			if (orderData.indexOf(selectApi) > -1){
+			    navigator.notification.alert(existFavorite,null,alertTitle);
+			    return;
+			}
+			
+			if (orderData != ""){
+			    orderData += ","+selectApi;
+			}else{
+			    orderData = selectApi;
+			}
+			
+		}else{
+		    orderData = selectApi;
+		}
+		
+		webdb.insertAppConfigData("FAVORITE_ORDER",orderData);
+		navigator.notification.alert(saveDataSuccess,null,alertTitle);
+	};
+	
+	</script>
+  </head>
+
+  <body>
+
+    <div id="includedContent">
+    </div>
+
+    <div class="container-fluid">
+        <div class="panel panel-public">
+            <div class="panel-heading">
+                <h3 class="panel-title">공공 API</h3>
+            </div>
+            <div class="panel-body">
+                <ul class="apiList">
+		            <li data-api="api01"><button type="button" class="btn btn-default" onclick="location.href='../html/data01.html';">새우편번호</button></li>
+        		    <li data-api="api03"><button type="button" class="btn btn-default" onclick="location.href='../html/data03.html';">병원/의원</button></li>
+        		    <li data-api="api04"><button type="button" class="btn btn-default" onclick="location.href='../html/data04.html';">약국</button></li>
+        		    <li data-api="api02"><button type="button" class="btn btn-default" onclick="location.href='../html/data02.html';">공연전시</button></li>
+        		    <li data-api="api05"><button type="button" class="btn btn-default" onclick="location.href='../html/data05.html';">전국 착한가격업소</button></li>
+        		    <li data-api="api08"><button type="button" class="btn btn-default" onclick="location.href='../html/data08.html';">전국 동물병원</button></li>
+        		    <li data-api="api09"><button type="button" class="btn btn-default" onclick="location.href='../html/data09.html';">전국 공중화장실</button></li>
+        		    <li data-api="api06"><button type="button" class="btn btn-default" onclick="location.href='../html/data06.html';">전국 대학별등록금통계</button></li>
+        		    <li data-api="api07"><button type="button" class="btn btn-default" onclick="location.href='../html/data07.html';">전국 유동인구</button></li>
+		        </ul>
+            </div>
+        </div>
+        <div class="panel panel-seoul">
+            <div class="panel-heading">
+                <h3 class="panel-title">서울시 API</h3>
+            </div>
+            <div class="panel-body">
+                <ul class="apiList">
+                    <li data-api="api12"><button type="button" class="btn btn-default" onclick="location.href='../html/seoul03.html';">지하철 열차 도착</button></li>
+		            <li data-api="api10"><button type="button" class="btn btn-default" onclick="location.href='../html/seoul01.html';">대중교통 분실물</button></li>
+		            <li data-api="api16"><button type="button" class="btn btn-default" onclick="location.href='../html/seoul07.html';">실시간 대기환경정보</button></li>
+		            <li data-api="api15"><button type="button" class="btn btn-default" onclick="location.href='../html/seoul06.html';">가격안정모범업소</button></li>
+        		    <li data-api="api11"><button type="button" class="btn btn-default" onclick="location.href='../html/seoul02.html';">지하철역 승하차인원 통계</button></li>
+        		    <li data-api="api13"><button type="button" class="btn btn-default" onclick="location.href='../html/seoul04.html';">공영주차장 주차 가능대수</button></li>
+        		    <li data-api="api14"><button type="button" class="btn btn-default" onclick="location.href='../html/seoul05.html';">공영주차장 정기권 판매현황</button></li>
+		        </ul>
+            </div>
+        </div>
+        <div class="panel panel-daum">
+            <div class="panel-heading">
+                <h3 class="panel-title">DAUM API</h3>
+            </div>
+            <div class="panel-body">
+                <ul class="apiList">
+		            <li data-api="api17"><button type="button" class="btn btn-default" onclick="location.href='../html/map01.html';">내위치 검색</button></li>
+		            <li data-api="api18"><button type="button" class="btn btn-default" onclick="location.href='../html/map02.html';">내주변 검색</button></li>
+		            <li data-api="api19"><button type="button" class="btn btn-default" onclick="location.href='../html/daum01.html';">맛집 검색</button></li>
+		            <li data-api="api20"><button type="button" class="btn btn-default" onclick="location.href='../html/daum02.html';">레시피 검색</button></li>
+		            <li data-api="api22"><button type="button" class="btn btn-default" onclick="location.href='../html/daum04.html';">여행 검색</button></li>
+		            <li data-api="api21"><button type="button" class="btn btn-default" onclick="location.href='../html/daum03.html';">최저가 검색</button></li>
+		        </ul>
+            </div>
+        </div>
+        <div class="panel panel-sk">
+            <div class="panel-heading">
+                <h3 class="panel-title">SK플래닛 API</h3>
+            </div>
+            <div class="panel-body">
+                <ul class="apiList">
+                    <li data-api="api23"><button type="button" class="btn btn-default" onclick="location.href='../html/sk01.html';">내위치 기상예보</button></li>
+		            <li data-api="api24"><button type="button" class="btn btn-default" onclick="location.href='../html/sk02.html';">hoppin 영화순위</button></li>
+		            <li data-api="api25"><button type="button" class="btn btn-default" onclick="location.href='../html/sk03.html';">멜론 일간순위</button></li>
+		        </ul>
+            </div>
+        </div>
+        <div class="panel panel-etc">
+            <div class="panel-heading">
+                <h3 class="panel-title">기타</h3>
+            </div>
+            <div class="panel-body">
+                <ul class="apiList">
+                    <li data-api="api26"><button type="button" class="btn btn-default" onclick="location.href='../html/compass.html';">나침반</button></li>
+		            <li data-api="api27"><button type="button" class="btn btn-default" onclick="cordova.InAppBrowser.open('http://play.gamemix.com/', '_self', 'location=no');">html5게임</button></li>
+		        </ul>
+            </div>
+        </div>
+        
+
+    </div> <!-- /container -->
+	<div id="format01" style="display:none;">
+		<ul class="apiList">
+		  <li data-api="api01"><button type="button" class="btn btn-default" onclick="location.href='../html/data01.html';">새우편번호</button></li>
+		  <li data-api="api02"><button type="button" class="btn btn-default" onclick="location.href='../html/data02.html';">공연전시 정보</button></li>
+		  <li data-api="api03"><button type="button" class="btn btn-default" onclick="location.href='../html/data03.html';">병원/의원 정보</button></li>
+		  <li data-api="api04"><button type="button" class="btn btn-default" onclick="location.href='../html/data04.html';">약국 정보</button></li>
+		  <li data-api="api05"><button type="button" class="btn btn-default" onclick="location.href='../html/data05.html';">전국 착한가격업소 현황</button></li>
+		  <li data-api="api06"><button type="button" class="btn btn-default" onclick="location.href='../html/data06.html';">전국 대학별등록금통계 현황</button></li>
+		  <li data-api="api07"><button type="button" class="btn btn-default" onclick="location.href='../html/data07.html';">전국 유동인구 현황</button></li>
+		  <li data-api="api08"><button type="button" class="btn btn-default" onclick="location.href='../html/data08.html';">전국 동물병원 현황</button></li>
+		  <li data-api="api09"><button type="button" class="btn btn-default" onclick="location.href='../html/data09.html';">전국 공중화장실 현황</button></li>
+		  <li data-api="api10"><button type="button" class="btn btn-default" onclick="location.href='../html/seoul01.html';">대중교통 분실물 보관 목록</button></li>
+		  <li data-api="api11"><button type="button" class="btn btn-default" onclick="location.href='../html/seoul02.html';">지하철역별 승하차인원</button></li>
+		  <li data-api="api12"><button type="button" class="btn btn-default" onclick="location.href='../html/seoul03.html';">지하철역별 열차 도착 정보</button></li>
+		  <li data-api="api13"><button type="button" class="btn btn-default" onclick="location.href='../html/seoul04.html';">서울시 공영주차장 주차 가능대수</button></li>
+		  <li data-api="api14"><button type="button" class="btn btn-default" onclick="location.href='../html/seoul05.html';">서울시 공영주차장 정기권 판매현황</button></li>
+		  <li data-api="api15"><button type="button" class="btn btn-default" onclick="location.href='../html/seoul06.html';">서울시 가격안정모범업소</button></li>
+		  <li data-api="api16"><button type="button" class="btn btn-default" onclick="location.href='../html/seoul07.html';">서울시 실시간 대기환경정보</button></li>
+		  <li data-api="api17"><button type="button" class="btn btn-default" onclick="location.href='../html/map01.html';">위치 정보</button></li>
+		  <li data-api="api18"><button type="button" class="btn btn-default" onclick="location.href='../html/map02.html';">내주변 검색</button></li>
+		  <li data-api="api19"><button type="button" class="btn btn-default" onclick="location.href='../html/daum01.html';">맛집 정보</button></li>
+		  <li data-api="api20"><button type="button" class="btn btn-default" onclick="location.href='../html/daum02.html';">레시피 정보</button></li>
+		  <li data-api="api21"><button type="button" class="btn btn-default" onclick="location.href='../html/daum03.html';">최저가 검색</button></li>
+		  <li data-api="api22"><button type="button" class="btn btn-default" onclick="location.href='../html/daum04.html';">여행 정보</button></li>
+		  <li data-api="api23"><button type="button" class="btn btn-default" onclick="location.href='../html/sk01.html';">내위치 기상예보</button></li>
+		  <li data-api="api24"><button type="button" class="btn btn-default" onclick="location.href='../html/sk02.html';">hoppin 영화순위</button></li>
+		  <li data-api="api25"><button type="button" class="btn btn-default" onclick="location.href='../html/sk03.html';">멜론 일간순위</button></li>
+		  <li data-api="api26"><button type="button" class="btn btn-default" onclick="location.href='../html/compass.html';">나침반</button></li>
+		  <li data-api="api27"><button type="button" class="btn btn-default" onclick="cordova.InAppBrowser.open('http://play.gamemix.com/', '_self', 'location=no');">html5게임</button></li>
+		</ul>
+	</div>
+	<p id="back-top">
+		<a href="#top"><span></span></a>
+	</p>
+	<!--footer class="footer">
+      <div class="container">
+        <p class="text-muted">footer 내용.....</p>
+      </div>
+    </footer-->
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    
+    <!-- Just to make our placeholder images work. Don't actually copy the next line! -->
+  </body>
+</html>

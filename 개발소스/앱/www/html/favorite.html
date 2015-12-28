@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="utf-8">
+	<meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="my api">
+    <meta name="author" content="poppppp">
+    <link rel="icon" href="../favicon.ico">
+
+    <title>My API</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+	<link href="../css/jquery-ui.css" rel="stylesheet">
+	<link href="../css/dashboard.css" rel="stylesheet">
+    <link href="../css/theme.css" rel="stylesheet">
+	<link href="../css/showLoading.css" rel="stylesheet">
+    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
+	<script type="text/javascript" src="../cordova.js"></script>
+	<script type="text/javascript" src="../js/jquery-1.11.3.js"></script>
+	<script type="text/javascript" src="../js/jquery-ui.js"></script>
+	<script type="text/javascript" src="../js/jquery.ui.touch-punch.js"></script>
+	<script type="text/javascript" src="../js/jquery.showLoading.min.js"></script>
+    <script type="text/javascript" src="../js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="../js/common.js"></script>
+	<script type="text/javascript">
+	document.addEventListener("deviceready", onDeviceReady, false);
+
+    function onDeviceReady(){
+        document.addEventListener("backbutton", function(e){
+           navigator.notification.confirm("My API앱을 종료하시겠습니까?",fnEnd,endTitle,confirmYN);
+        }, false);
+    }
+    
+    var fnEnd = function(buttonIndex){
+		if (buttonIndex == 1){
+		    navigator.app.exitApp();
+		}
+	};
+	
+	var Request = function()
+	{
+	    this.getParameter = function( name )
+	    {
+	        var rtnval = '';
+	        var nowAddress = unescape(location.search);
+	        var parameters = (nowAddress.slice(nowAddress.indexOf('?')+1,nowAddress.length)).split('&');
+	        
+	        for(var i = 0 ; i < parameters.length ; i++)
+	        {
+	            var varName = parameters[i].split('=')[0];
+	            if(varName.toUpperCase() == name.toUpperCase())
+	            {
+	                rtnval = parameters[i].split('=')[1];
+	                break;
+	            }
+	        }
+	        return rtnval;
+	    }
+	};
+	
+	var request = new Request();
+	
+	var callApi = "main";
+	var timer;
+	var selectApi = "";
+	var changeYn = request.getParameter('change');
+	
+	$(function(){
+      
+	  
+	  if (window.openDatabase) {
+		webdb.open();
+		webdb.createAppConfigTable();
+		webdb.selectAppConfigData("FAVORITE_ORDER");
+	  }else{
+	    //defaultList();
+	  }
+	  
+	  $("#sortable").sortable({
+		  placeholder: "ui-state-highlight",
+		  update: function( event, ui ) {
+		      var data = "";
+		      $("#sortable li").each(function(idx){
+				  if (idx==0){
+				    data = $(this).attr("data-api");
+				  }else{
+				    data += ","+$(this).attr("data-api");
+				  }
+			  });
+			  
+			  if (window.openDatabase) {
+				  webdb.open();
+				  webdb.createAppConfigTable();
+				  webdb.insertAppConfigData("FAVORITE_ORDER",data);
+			  }
+		  }
+	  });
+      $("#sortable").disableSelection();
+      
+      
+      if (changeYn == "Y"){
+          $("#fTitle").text("즐겨찾기 위치변경");
+          $("#sortable").sortable( "option", "disabled", false );
+          $("#sortable li span").attr("onclick","");
+      }else{
+    	  $("#sortable").sortable( "option", "disabled", true );
+    	  
+    	  $(document).on('mousedown', "#sortable li span" ,function(){      
+    	      longpress=true;
+    	      selectApi = $(this).parent().attr("data-api");
+    		  timer = setTimeout(function() {    
+    		      if(longpress){
+    			      longpress=false;
+    			      clearTimeout(timer);
+    			      
+    				  navigator.notification.confirm(deleteFavorite,fnConfirm,favoriteTitle,confirmYN);
+    				  //fnConfirm(1);
+    			  }
+    		  }, 1000);
+    	  });
+    	  $(document).on('mouseup', "#sortable li span" ,function(){
+    		longpress=false; 
+    		if (timer){
+                clearTimeout(timer);
+    		}
+    	  });
+	  }
+	  
+    });
+	
+	var fnGetAppConfigData = function(tx, rs){
+		if (rs.rows.length > 0){
+			orderData = rs.rows.item(0).CONFIG_DATA;
+			arrData = orderData.split(",");
+			for (i=0; i<arrData.length;i++){
+				$("#sortable").append($("#format01 ul li[data-api="+arrData[i]+"]"));
+			}
+			
+			if (changeYn == "Y"){
+			    $("#sortable li span").attr("onclick","return;");
+			    $("#changeConfirm").show();
+			}
+		}
+		//defaultList();
+	};
+	
+	var defaultList = function(){
+		$("#sortable").append($("#format01 ul li"));
+	};
+	
+	var fnConfirm = function(buttonIndex){
+	    
+		if (buttonIndex == 1){
+		    
+		    //apiList에서 뺌
+		    $("#format01 ul").append($("#sortable li[data-api='"+selectApi+"']"));
+		    
+		    var data = "";
+		    $("#sortable li").each(function(idx){
+    			if (idx==0){
+    			    data = $(this).attr("data-api");
+    			}else{
+    			    data += ","+$(this).attr("data-api");
+    			}
+			});
+			  
+			if (window.openDatabase) {
+			    webdb.open();
+			    webdb.createAppConfigTable();
+			    webdb.insertAppConfigData("FAVORITE_ORDER",data);
+			}
+			
+			navigator.notification.alert(deleteDataSuccess,null,alertTitle);
+		}
+	};
+	
+	</script>
+  </head>
+
+  <body>
+
+    <div id="includedContent">
+    </div>
+    <div class="container-fluid">
+        <div class="panel">
+            <div class="panel-heading">
+                <h3 class="panel-title" id="fTitle">즐겨찾기</h3>
+            </div>
+            <div class="panel-body">
+				<ul id="sortable" class="apiList">
+				</ul>
+			</div>
+		</div>
+    </div> <!-- /container -->
+    <p id="changeConfirm" class="btn-sec" style="display:none">
+		<button type="button" class="btn btn-default on" onclick="location.href='../html/favorite.html';">확인</button>
+	</p>
+	<div id="format01" style="display:none">
+		<ul class="apiList">
+		  <li data-api="api01"><span class="btn btn-default" onclick="location.href='../html/data01.html';">새우편번호</span></li>
+		  <li data-api="api02"><span class="btn btn-default" onclick="location.href='../html/data02.html';">공연전시</span></li>
+		  <li data-api="api03"><span class="btn btn-default" onclick="location.href='../html/data03.html';">병원/의원</span></li>
+		  <li data-api="api04"><span class="btn btn-default" onclick="location.href='../html/data04.html';">약국</span></li>
+		  <li data-api="api05"><span class="btn btn-default" onclick="location.href='../html/data05.html';">전국 착한가격업소</span></li>
+		  <li data-api="api06"><span class="btn btn-default" onclick="location.href='../html/data06.html';">전국 대학별등록금통계</span></li>
+		  <li data-api="api07"><span class="btn btn-default" onclick="location.href='../html/data07.html';">전국 유동인구</span></li>
+		  <li data-api="api08"><span class="btn btn-default" onclick="location.href='../html/data08.html';">전국 동물병원</span></li>
+		  <li data-api="api09"><span class="btn btn-default" onclick="location.href='../html/data09.html';">전국 공중화장실</span></li>
+		  <li data-api="api10"><span class="btn btn-default" onclick="location.href='../html/seoul01.html';">대중교통 분실물</span></li>
+		  <li data-api="api11"><span class="btn btn-default" onclick="location.href='../html/seoul02.html';">지하철역 승하차인원 통계</span></li>
+		  <li data-api="api12"><span class="btn btn-default" onclick="location.href='../html/seoul03.html';">지하철 열차 도착</span></li>
+		  <li data-api="api13"><span class="btn btn-default" onclick="location.href='../html/seoul04.html';">공영주차장 주차 가능대수</span></li>
+		  <li data-api="api14"><span class="btn btn-default" onclick="location.href='../html/seoul05.html';">공영주차장 정기권 판매현황</span></li>
+		  <li data-api="api15"><span class="btn btn-default" onclick="location.href='../html/seoul06.html';">가격안정모범업소</span></li>
+		  <li data-api="api16"><span class="btn btn-default" onclick="location.href='../html/seoul07.html';">실시간 대기환경정보</span></li>
+		  <li data-api="api17"><span class="btn btn-default" onclick="location.href='../html/map01.html';">내위치 검색</span></li>
+		  <li data-api="api18"><span class="btn btn-default" onclick="location.href='../html/map02.html';">내주변 검색</span></li>
+		  <li data-api="api19"><span class="btn btn-default" onclick="location.href='../html/daum01.html';">맛집 검색</span></li>
+		  <li data-api="api20"><span class="btn btn-default" onclick="location.href='../html/daum02.html';">레시피 검색</span></li>
+		  <li data-api="api21"><span class="btn btn-default" onclick="location.href='../html/daum03.html';">최저가 검색</span></li>
+		  <li data-api="api22"><span class="btn btn-default" onclick="location.href='../html/daum04.html';">여행 검색</span></li>
+		  <li data-api="api23"><span class="btn btn-default" onclick="location.href='../html/sk01.html';">내위치 기상예보</span></li>
+		  <li data-api="api24"><span class="btn btn-default" onclick="location.href='../html/sk02.html';">hoppin 영화순위</span></li>
+		  <li data-api="api25"><span class="btn btn-default" onclick="location.href='../html/sk03.html';">멜론 일간순위</span></li>
+		  <li data-api="api26"><span class="btn btn-default" onclick="location.href='../html/compass.html';">나침반</span></li>
+		  <li data-api="api27"><span class="btn btn-default" onclick="cordova.InAppBrowser.open('http://play.gamemix.com/', '_self', 'location=no');">html5게임</span></li>
+		</ul>
+	</div>
+	<p id="back-top">
+		<a href="#top"><span></span></a>
+	</p>
+	<!--footer class="footer">
+      <div class="container">
+        <p class="text-muted">footer 내용.....</p>
+      </div>
+    </footer-->
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    
+    <!-- Just to make our placeholder images work. Don't actually copy the next line! -->
+  </body>
+</html>

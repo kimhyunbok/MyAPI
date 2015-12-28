@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="utf-8">
+	<meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="my api">
+    <meta name="author" content="poppppp">
+    <link rel="icon" href="../favicon.ico">
+
+    <title>My API</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="../css/jquery-ui.css" rel="stylesheet">
+	<link href="../css/dashboard.css" rel="stylesheet">
+    <link href="../css/theme.css" rel="stylesheet">
+    <link href="../css/showLoading.css" rel="stylesheet">
+	<!--link href="./css/sticky-footer.css" rel="stylesheet"-->
+
+    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
+    <script type="text/javascript" src="../cordova.js"></script>
+	<script type="text/javascript" src="../js/jquery-1.11.3.js"></script>
+	<script type="text/javascript" src="../js/jquery-ui.js"></script>
+	<script type="text/javascript" src="../js/jquery.showLoading.min.js"></script>
+    <script type="text/javascript" src="../js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../js/common.js"></script>
+	
+	<script type="text/javascript">
+	
+	var curLat = "";
+	var curLnt = "";
+	
+	$(document).ready(function(){
+		//내 위치를 검색
+		if (!navigator.geolocation) {
+		    alert ("지오로케이션을 지원하지 않습니다.");
+		    return;
+	    }
+		$(document.body).showLoading();
+		navigator.geolocation.getCurrentPosition (function (pos){
+			$(document.body).hideLoading();
+			curLat = pos.coords.latitude;
+			curLnt = pos.coords.longitude;
+			
+			//내 위치를 얻은 경우, 위치 주소 반환
+			var dataObj = new Object();
+			dataObj.callApi = "daumAddr";
+			dataObj.y = curLat;
+			dataObj.x = curLnt;
+			dataObj.inputCoordSystem = "WGS84";
+			$.ajax({
+				url: dataDaumUrl,
+				method : 'POST',
+				data: dataObj,
+				dataType : "jsonp",
+				jsonp : "callback",
+				success: function(data){
+
+					//console.log(data);
+					$(".alert-info").show();
+					$("#curLoc").text("내위치 : "+data.region);
+					fnSearch();
+					return;
+				},
+				error: function(){
+					//navigator.notification.alert(alertNetwork,null,alertTitle);
+				}
+			});
+		},fnLocationError );
+	});
+	
+	
+	
+	var globalData = null;
+	var serviceName = "weather";
+	var callApi = "sk01";
+	
+	function fnSearch(){
+		
+		var dataObj = new Object();
+		dataObj.callApi = callApi;
+		if (curLat != "" && curLnt != ""){
+		    dataObj["version"] = 1;
+			dataObj["lat"] = curLat;
+			dataObj["lon"] = curLnt;
+		}else{
+			navigator.notification.alert("위치정보를 얻지 못하였습니다.",null,alertTitle);
+			return;
+		}
+		//dataObj.sort = "date";
+		
+		
+		$("#resTable tbody tr").remove();
+		$(document.body).showLoading();
+		//현재기온 get
+		$.ajax({
+			url: dataSkUrl,
+			method : 'POST',
+			data: dataObj,
+			dataType : "jsonp",
+			jsonp : "callback",
+			success: function(data){
+			    //console.log(data);
+			    $("#tc").text(data[serviceName].minutely[0].temperature.tc);
+			    $("#humidity").text(data[serviceName].minutely[0].humidity);
+			    $("#sinceMidnight").text(data[serviceName].minutely[0].rain.sinceMidnight);
+			},
+			error: function(){
+				$(document.body).hideLoading();
+				navigator.notification.alert(alertNetwork,null,alertTitle);
+			}
+		});
+		
+		dataObj.callApi = "sk01-1";
+		$.ajax({
+			url: dataSkUrl,
+			method : 'POST',
+			data: dataObj,
+			dataType : "jsonp",
+			jsonp : "callback",
+			success: function(data){
+				globalData = data;
+				console.log(data);
+				
+				if (globalData[serviceName].summary != null){
+					
+					
+					$("#totalCnt").text("("+globalData[serviceName].summary[0].timeRelease+")");
+					
+					//오늘날씨
+					$("#format01 table tbody tr td:even").text("");
+					$("#format01 table tbody .no").text(1);
+				
+					$("#format01 table tbody .r1").html("오늘" );
+					$("#format01 table tbody .r2").html(globalData[serviceName].summary[0].today.sky.name );
+					imgNo = "";
+					switch(globalData[serviceName].summary[0].today.sky.name){
+					    case "맑음": imgNo="01";break;
+					    case "구름조금": imgNo="02";break;
+					    case "구름많음": imgNo="03";break;
+					    case "구름많고 비": imgNo="04";break;
+					    case "구름많고 눈": imgNo="05";break;
+					    case "구름많고 비 또는 눈": imgNo="06";break;
+					    case "흐림": imgNo="07";break;
+					    case "비": imgNo="08";break;
+					    case "눈": imgNo="09";break;
+					    case "비 또는 눈": imgNo="10";break;
+					    case "낙뢰": imgNo="11";break;
+					    case "뇌우, 비": imgNo="12";break;
+					    case "뇌우, 눈": imgNo="13";break;
+					    case "뇌우, 비 또는 눈": imgNo="14";break;
+					}
+					$("#format01 table tbody .r2").append("<img width='20%' src='../img/weather/"+imgNo+".png' />" );
+					$("#format01 table tbody .r3").html(globalData[serviceName].summary[0].today.temperature.tmax);
+					$("#format01 table tbody .r4").text(globalData[serviceName].summary[0].today.temperature.tmin);
+	
+					$("#resTable tbody").append($("#format01 table tbody").html());
+					
+					//내일날씨
+					$("#format01 table tbody tr td:even").text("");
+					$("#format01 table tbody .no").text(2);
+				
+					$("#format01 table tbody .r1").html("내일" );
+					$("#format01 table tbody .r2").html(globalData[serviceName].summary[0].tomorrow.sky.name );
+					imgNo = "";
+					switch(globalData[serviceName].summary[0].tomorrow.sky.name){
+					    case "맑음": imgNo="01";break;
+					    case "구름조금": imgNo="02";break;
+					    case "구름많음": imgNo="03";break;
+					    case "구름많고 비": imgNo="04";break;
+					    case "구름많고 눈": imgNo="05";break;
+					    case "구름많고 비 또는 눈": imgNo="06";break;
+					    case "흐림": imgNo="07";break;
+					    case "비": imgNo="08";break;
+					    case "눈": imgNo="09";break;
+					    case "비 또는 눈": imgNo="10";break;
+					    case "낙뢰": imgNo="11";break;
+					    case "뇌우, 비": imgNo="12";break;
+					    case "뇌우, 눈": imgNo="13";break;
+					    case "뇌우, 비 또는 눈": imgNo="14";break;
+					}
+					$("#format01 table tbody .r2").append("<img width='20%' src='../img/weather/"+imgNo+".png' />" );
+					$("#format01 table tbody .r3").html(globalData[serviceName].summary[0].tomorrow.temperature.tmax);
+					$("#format01 table tbody .r4").text(globalData[serviceName].summary[0].tomorrow.temperature.tmin);
+	
+					$("#resTable tbody").append($("#format01 table tbody").html());
+					
+					//모레날씨
+					$("#format01 table tbody tr td:even").text("");
+					$("#format01 table tbody .no").text(3);
+				
+					$("#format01 table tbody .r1").html("모레" );
+					$("#format01 table tbody .r2").html(globalData[serviceName].summary[0].dayAfterTomorrow.sky.name );
+					imgNo = "";
+					switch(globalData[serviceName].summary[0].dayAfterTomorrow.sky.name){
+					    case "맑음": imgNo="01";break;
+					    case "구름조금": imgNo="02";break;
+					    case "구름많음": imgNo="03";break;
+					    case "구름많고 비": imgNo="04";break;
+					    case "구름많고 눈": imgNo="05";break;
+					    case "구름많고 비 또는 눈": imgNo="06";break;
+					    case "흐림": imgNo="07";break;
+					    case "비": imgNo="08";break;
+					    case "눈": imgNo="09";break;
+					    case "비 또는 눈": imgNo="10";break;
+					    case "낙뢰": imgNo="11";break;
+					    case "뇌우, 비": imgNo="12";break;
+					    case "뇌우, 눈": imgNo="13";break;
+					    case "뇌우, 비 또는 눈": imgNo="14";break;
+					}
+					$("#format01 table tbody .r2").append("<img width='20%' src='../img/weather/"+imgNo+".png' />" );
+					$("#format01 table tbody .r3").html(globalData[serviceName].summary[0].dayAfterTomorrow.temperature.tmax);
+					$("#format01 table tbody .r4").text(globalData[serviceName].summary[0].dayAfterTomorrow.temperature.tmin);
+	
+					$("#resTable tbody").append($("#format01 table tbody").html());
+					
+				}else{
+					navigator.notification.alert(alertNoData,null,alertTitle);
+				}
+				$(document.body).hideLoading();
+			},
+			error: function(){
+				globalData = null;
+				$(document.body).hideLoading();
+				navigator.notification.alert(alertNetwork,null,alertTitle);
+			}
+		});
+
+		return;
+	}
+	
+	
+	</script>
+
+  </head>
+
+  <body>
+
+    <div id="includedContent">
+    </div>
+	
+    <div class="container-fluid">
+        <div class="panel">
+            <div class="panel-heading">
+                <h3 class="panel-title">내위치 기상예보</h3>
+            </div>
+            <div class="alert alert-info" style="display:none;margin-bottom:0px;">
+	            <span id="curLoc" style="font-size:12px;"></span>
+	        </div>
+            
+        </div>
+		<div id="tMain" class="panel">
+            <div class="panel-heading">
+                <h3 class="panel-title">응답결과 <span id="totalCnt"></span></h3>
+            </div>
+            <div class="panel-body">
+				<div class="table-type1">
+					<table id="resTable_current">
+						<colgroup>
+							<col width="30%" />
+							<col width="*" />
+						</colgroup>
+						<tbody>
+							<tr>
+								<th>현재기온(°C)</th>
+								<td id="tc"></td>
+							</tr>
+							<tr>
+								<th>상대습도(%)</th>
+								<td id="humidity"></td>
+							</tr>
+							<tr>
+								<th>일 누적 강우량</th>
+								<td id="sinceMidnight"></td>
+							</tr>
+						</tbody>
+						<tbody>
+							
+						</tbody>
+					</table>
+				</div>
+            </div>
+            <div class="panel-body">
+				<div class="table-type1">
+					<table id="resTable">
+						<colgroup>
+							<col width="10%" />
+							<col width="30%" />
+							<col width="*" />
+						</colgroup>
+						<thead>
+							<tr>
+								<th>No.</th>
+								<th>응답명</th>
+								<th>응답값</th>
+							</tr>
+						</thead>
+						<tbody>
+							
+						</tbody>
+					</table>
+				</div>
+            </div>
+        </div>
+        
+
+    </div> <!-- /container -->
+	
+	<div id="format01" style="display:none;">
+		<table>
+			<tbody>
+				<tr>
+					<td align="right" rowspan='4' class="no">1</td>
+					<td>구분
+					</td>
+					<td class="r1">
+					</td>
+				</tr>
+				<tr>
+					<td>기상상태</td>
+					<td class="r2"></td>
+				</tr>
+				<tr>
+					<td>기온(최고°C)</td>
+					<td class="r3"></td>
+				</tr>
+				<tr>
+					<td>기온(최저°C)</td>
+					<td class="r4"></td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	<p id="back-top">
+		<a href="#top"><span></span></a>
+	</p>
+	
+	
+	<!--footer class="footer">
+      <div class="container">
+        <p class="text-muted">footer 내용.....</p>
+      </div>
+    </footer-->
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    
+    <!-- Just to make our placeholder images work. Don't actually copy the next line! -->
+
+  </body>
+</html>

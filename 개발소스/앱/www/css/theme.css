@@ -1,0 +1,65 @@
+body {
+  font-family:"Nanum";
+  padding-top: 11.4%;
+  padding-bottom: 30px;
+}
+
+.theme-dropdown .dropdown-menu {
+  position: static;
+  display: block;
+  margin-bottom: 20px;
+}
+
+.theme-showcase > p > .btn {
+  margin: 5px 0;
+}
+
+.theme-showcase .navbar .container {
+  width: auto;
+}
+
+/*
+Back to top button 
+*/
+#back-top {
+	position: fixed;
+	bottom: 0px;
+	right:0px;
+	/*margin-left: -150px;*/
+}
+#back-top a {
+	width: 57px;
+	display: block;
+	text-align: center;
+	font: 11px/100% Arial, Helvetica, sans-serif;
+	text-transform: uppercase;
+	text-decoration: none;
+	color: #aaa;
+	/* background color transition */
+	-webkit-transition: 1s;
+	-moz-transition: 1s;
+	transition: 1s;
+}
+#back-top a:hover {
+	color: #aaa;
+}
+/* arrow icon (span tag) */
+#back-top span {
+	width: 57px;
+	height: 57px;
+	display: block;
+	margin-bottom: 7px;
+	background: #ddd url(../img/up-arrow.png) no-repeat center center;
+	background-size:100% 100%;
+	/* rounded corners */
+	-webkit-border-radius: 15px;
+	-moz-border-radius: 15px;
+	border-radius: 15px;
+	/* background color transition */
+	-webkit-transition: 1s;
+	-moz-transition: 1s;
+	transition: 1s;
+}
+#back-top a:hover span {
+	background-color: #aaa;
+}

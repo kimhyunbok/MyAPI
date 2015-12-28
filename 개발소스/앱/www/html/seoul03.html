@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="utf-8">
+	<meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="my api">
+    <meta name="author" content="poppppp">
+    <link rel="icon" href="../favicon.ico">
+
+    <title>My API</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="../css/jquery-ui.css" rel="stylesheet">
+	<link href="../css/dashboard.css" rel="stylesheet">
+    <link href="../css/theme.css" rel="stylesheet">
+    <link href="../css/showLoading.css" rel="stylesheet">
+	<!--link href="./css/sticky-footer.css" rel="stylesheet"-->
+
+    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
+    <script type="text/javascript" src="../cordova.js"></script>
+	<script type="text/javascript" src="../js/jquery-1.11.3.js"></script>
+	<script type="text/javascript" src="../js/jquery-ui.js"></script>
+	<script type="text/javascript" src="../js/jquery.showLoading.min.js"></script>
+    <script type="text/javascript" src="../js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../js/common.js"></script>
+	
+	<script type="text/javascript">
+	
+	
+	$(document).ready(function(){
+		$("#p1").change(function(){
+			
+			if ($("#p1").val() == "2"){
+			    $("#p3 > option[value=1]").text("시계방향");
+			    $("#p3 > option[value=2]").text("반시계방향");
+			}else{
+			    $("#p3 > option[value=1]").text("상행");
+			    $("#p3 > option[value=2]").text("하행");
+			}
+			
+			var selServiceName = "SearchSTNBySubwayLineService";
+			var dataObj = new Object();
+			dataObj.paramStr = selServiceName+"/"+1+"/"+100+"/"+$("#p1").val()+"/";
+			
+			$.ajax({
+				url: dataSeoulUrl,
+				method : 'POST',
+				data: dataObj,
+				dataType : "jsonp",
+				jsonp : "callback",
+				success: function(data){
+					
+					if (data[selServiceName] != null){
+						var p2Html = "";
+						if (!$.isArray(data[selServiceName].row)){
+							bakData = data[selServiceName].row;
+							data[selServiceName].row = new Array();
+							data[selServiceName].row[0] = bakData;
+						}
+							
+						for (i=0;i<data[selServiceName].row.length;i++){
+							p2Html += '<option value="'+data[selServiceName].row[i].STATION_CD+'">'+data[selServiceName].row[i].STATION_NM+'</option>';
+						}
+							
+						
+						$("#p2").html(p2Html);
+						if (globalRs != null){
+						    $("#p2").val(globalRs.rows.item(1).DATA);
+						    globalRs = null;
+						}
+						if (globalP2 != null){
+						    $("#p2").val(globalP2);
+						    globalP2 = null;
+						}
+					}else{
+						navigator.notification.alert(alertNoData,null,alertTitle);
+					}
+					$(document.body).hideLoading();
+				},
+				error: function(){
+					globalData = null;
+					globalSeq = 1;
+					globalTotalCount = 0;
+					$(document.body).hideLoading();
+					navigator.notification.alert(alertNetwork,null,alertTitle);
+				}
+			});
+		});
+		
+		if (!window.openDatabase) {
+      	  return;
+	    }else {
+	      
+	      //최근 검색어를 default
+          webdb.open();
+          webdb.createTable();
+          webdb.selectRecentDataSeoul03(callApi);
+		}
+		
+	});
+	
+	var globalRs = null;
+	var globalP2 = null;
+	
+	webdb.selectRecentDataSeoul03 = function(callApi) {
+	  webdb.db.transaction(function(tx) {
+	    tx.executeSql("select ID, DATA "
+	                 +"  from SEARCH_HIST "
+	                 +" WHERE CALL_API = ? "
+	                 +"   AND IDX = (select max(IDX) from SEARCH_HIST where CALL_API = ? ) "
+	                  ,[callApi, callApi]
+	                  ,function (tx, rs) {
+	                      globalRs = rs;
+	                      for (var i=0; i < rs.rows.length; i++) {
+	                        $("#"+rs.rows.item(i).ID).val(rs.rows.item(i).DATA);
+	                      }
+	                      $("#p1").change();
+                      }
+	                  ,webdb.onError);
+	  });
+	};
+	
+	
+	//$(document).on("click","#resTable tbody .title",function(){fnDetail($(this).parent().find(".seq").val());});
+	
+	var globalData = null;
+	var globalSeq = 1;
+	var globalTotalCount = 0;
+	var callApi = "seoul03";
+	var serviceName = "SearchArrivalInfoByIDService";
+	
+	function fnSearch(){
+		
+		var dataObj = new Object();
+		dataObj.paramStr = serviceName+"/1/1000/"+$("#p2").val()+"/"+$("#p3").val()+"/"+$("#p4").val()+"/";
+		
+		//history 등록
+		var histObj = new Object();
+        histObj.call_api = callApi;
+        histObj.data = new Array();
+        for (var i=1; i <= 4; i++) {
+            arrTemp = [histObj.call_api, i, "p"+i, $("#p"+i).val(), $("#p"+i+" option:selected").text()];
+            histObj.data.push(arrTemp);
+        }
+      
+        webdb.insertNextData(histObj);
+		
+		$("#resTable tbody tr").remove();
+		$(document.body).showLoading();
+		$.ajax({
+			url: dataSeoulUrl,
+			method : 'POST',
+			data: dataObj,
+			dataType : "jsonp",
+			jsonp : "callback",
+			success: function(data){
+				globalData = data;
+				globalSeq = 1;
+				//console.log(data);
+				if (data[serviceName] != null){
+					
+					if (!$.isArray(data[serviceName].row)){
+						bakData = data[serviceName].row;
+						data[serviceName].row = new Array();
+						data[serviceName].row[0] = bakData;
+					}
+					
+					$("#totalCnt").text("("+data[serviceName].list_total_count+")");
+					globalTotalCount = data[serviceName].list_total_count;
+					for (i=0;i<data[serviceName].row.length;i++){
+						$("#format01 table tbody tr td:even").text("");
+						$("#format01 table tbody .no").text(i+1+ (globalSeq-1) * 10 );
+					
+						$("#format01 table tbody .seq").val(i+1+ (globalSeq-1) * 10);
+						$("#format01 table tbody .ARRIVETIME").text(data[serviceName].row[i].ARRIVETIME);
+						$("#format01 table tbody .LEFTTIME").text(data[serviceName].row[i].LEFTTIME);
+						$("#format01 table tbody .SUBWAYNAME").text(data[serviceName].row[i].SUBWAYNAME);
+						$("#format01 table tbody .TRAINCODE").text(data[serviceName].row[i].TRAINCODE);
+						
+						$("#resTable tbody").append($("#format01 table tbody").html());
+					}
+					
+				}else{
+					navigator.notification.alert(alertNoData,null,alertTitle);
+				}
+				$(document.body).hideLoading();
+			},
+			error: function(){
+				globalData = null;
+				globalSeq = 1;
+				globalTotalCount = 0;
+				$(document.body).hideLoading();
+				navigator.notification.alert(alertNetwork,null,alertTitle);
+			}
+		});
+
+		return;
+	}
+	
+	
+	
+	function fnGetHistorySeoul03(obj){
+	    var dataId = $(obj).attr("data-id");
+	    var dataData = $(obj).attr("data-data");
+	    
+	    arrDataId = dataId.split("|");
+	    arrDataData = dataData.split("|",arrDataId.length);
+	    for (var i=0; i < arrDataId.length; i++) {
+          $("#"+arrDataId[i]).val(arrDataData[i]);
+        }
+	    globalP2 = arrDataData[1];
+	    $("#p1").change();
+	    
+	    $(document.body).hideLoading({indicatorID:"historyList", removeObj:"N"});
+	}
+	
+	</script>
+
+  </head>
+
+  <body>
+
+    <div id="includedContent">
+    </div>
+	
+    <div class="container-fluid">
+        <div class="panel">
+            <div class="panel-heading">
+                <h3 class="panel-title">지하철 열차 도착(서울시)</h3>
+            </div>
+            <div class="panel-body">
+				<div class="table-type1">
+					<table>
+						<colgroup>
+							<col width="30%" />
+							<col width="*" />
+						</colgroup>
+						<thead>
+							<tr>
+								<th>검색항목명</th>
+								<th>검색항목값</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<th>호선</th>
+								<td>
+									<select id="p1" class="select" style="width:99%;">
+										<option value="">-선택-</option>
+										<option value="1">1호선</option>
+										<option value="2">2호선</option>
+										<option value="3">3호선</option>
+										<option value="4">4호선</option>
+										<option value="5">5호선</option>
+										<option value="6">6호선</option>
+										<option value="7">7호선</option>
+										<option value="8">8호선</option>
+										<option value="9">9호선</option>
+										<option value="I">인천1호선</option>
+										<option value="K">경의중앙선</option>
+										<option value="B">분당선</option>
+										<option value="A">공항철도</option>
+										<option value="G">경춘선</option>
+										<option value="S">신분당선</option>
+										<option value="SU">수인선</option>
+									</select>
+								</td>
+							</tr>
+							<tr>
+								<th>전철역</th>
+								<td>
+									<select id="p2" class="select" style="width:99%;">
+										<option value="">-선택-</option>
+									</select>
+								</td>
+							</tr>
+							<tr>
+								<th>상/하행선</th>
+								<td>
+									<select id="p3" class="select" style="width:99%;">
+										<option value="1">상행</option>
+										<option value="2">하행</option>
+									</select>
+								</td>
+							</tr>
+							<tr>
+								<th>요일</th>
+								<td>
+									<select id="p4" class="select" style="width:99%;">
+										<option value="1">평일</option>
+										<option value="2">토요일</option>
+										<option value="3">휴일/일요일</option>
+									</select>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<p class="btn-sec">
+				    <button type="button" class="btn btn-default" onclick="fnHistory();">최근검색어</button>
+					<button type="button" class="btn btn-default on" onclick="fnSearch();">검색</button>
+				</p>
+            </div>
+        </div>
+		<div id="tMain" class="panel">
+            <div class="panel-heading">
+                <h3 class="panel-title">응답결과 <span id="totalCnt"></span></h3>
+            </div>
+            <div class="panel-body">
+				<div class="table-type1">
+					<table id="resTable">
+						<colgroup>
+							<col width="10%" />
+							<col width="30%" />
+							<col width="*" />
+						</colgroup>
+						<thead>
+							<tr>
+								<th>No.</th>
+								<th>응답명</th>
+								<th>응답값</th>
+							</tr>
+						</thead>
+						<tbody>
+							
+						</tbody>
+					</table>
+				</div>
+            </div>
+        </div>
+        
+
+    </div> <!-- /container -->
+	
+	<div id="format01" style="display:none;">
+		<table>
+			<tbody>
+				<tr>
+					<td align="right" rowspan='4' class="no">1</td>
+					<td>도착시간
+						<input type="hidden" class="seq" />
+					</td>
+					<td class="ARRIVETIME">
+					</td>
+				</tr>
+				<tr>
+					<td>출발시간</td>
+					<td class="LEFTTIME"></td>
+				</tr>
+				<tr>
+					<td>도착역명</td>
+					<td class="SUBWAYNAME"></td>
+				</tr>
+				<tr>
+					<td>열차번호</td>
+					<td class="TRAINCODE"></td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	
+	<div id="historyList" class="col-sm-4" style="display:none;">
+      <div id="histListGroup" class="list-group">
+      </div>
+    </div>
+    <p id="back-top">
+		<a href="#top"><span></span></a>
+	</p>
+	
+	<!--footer class="footer">
+      <div class="container">
+        <p class="text-muted">footer 내용.....</p>
+      </div>
+    </footer-->
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    
+    <!-- Just to make our placeholder images work. Don't actually copy the next line! -->
+
+  </body>
+</html>

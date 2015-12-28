@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="utf-8">
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="my api">
+    <meta name="author" content="poppppp">
+    <link rel="icon" href="../favicon.ico">
+
+    <title>My API</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="../css/jquery-ui.css" rel="stylesheet">
+	<link href="../css/dashboard.css" rel="stylesheet">
+    <link href="../css/theme.css" rel="stylesheet">
+    <link href="../css/showLoading.css" rel="stylesheet">
+	<!--link href="./css/sticky-footer.css" rel="stylesheet"-->
+
+    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
+    <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
+    <script type="text/javascript" src="../cordova.js"></script>
+	<script type="text/javascript" src="../js/jquery-1.11.3.js"></script>
+	<script type="text/javascript" src="../js/jquery-ui.js"></script>
+	<script type="text/javascript" src="../js/jquery.showLoading.min.js"></script>
+    <script type="text/javascript" src="../js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../js/common.js"></script>
+	
+	<script type="text/javascript">
+	
+	
+	$(document).ready(function(){
+		
+	});
+	
+	$(window).scroll(function() {
+	    if ($(window).scrollTop() == $(document).height() - $(window).height()) {
+	        if ((globalSeq)*10 >= globalTotalCount ){
+	        	return;
+	        }
+	        if (!$("#tMain").is(":visible")){
+	        	return;
+	        }
+	        
+	        $(document.body).showLoading();
+	        globalSeq++;
+	        
+	        var resname = "msgBody";
+			var dataObj = new Object();
+			dataObj.callApi = "data02";
+			dataObj.cPage = globalSeq;
+			dataObj.place = $("#place").val();
+			dataObj.keyword = $("#keyword").val();
+			
+			$.ajax({
+				url: dataUrl,
+				method : 'POST',
+				data: dataObj,
+				dataType : "jsonp",
+				jsonp : "callback",
+				success: function(data){
+					
+					if (data[resname].perforList != null){
+						if (!$.isArray(data[resname].perforList)){
+							bakData = data[resname].perforList;
+							data[resname].perforList = new Array();
+							data[resname].perforList[0] = bakData;
+						}
+							
+						for (i=0;i<data[resname].perforList.length;i++){
+							globalData[resname].perforList.push(data[resname].perforList[i]);
+							//$("#format01 table tbody tr td:even").text("");
+							$("#format01 table tbody .no").text(i+1+ (Number(data[resname].cPage)-1) * 10);
+						
+							$("#format01 table tbody .seq").val(data[resname].perforList[i].seq);
+							$("#format01 table tbody .title").text(data[resname].perforList[i].title).append('<button type="button" class="btn btn-default">상세내역</button>');
+							$("#format01 table tbody .startDate").text(data[resname].perforList[i].startDate);
+							$("#format01 table tbody .endDate").text(data[resname].perforList[i].endDate);
+							$("#format01 table tbody .place").text(data[resname].perforList[i].place);
+							$("#format01 table tbody .realmName").text(data[resname].perforList[i].realmName);
+							$("#format01 table tbody .area").text(data[resname].perforList[i].area);
+							$("#format01 table tbody .thumbnail").prop("src",data[resname].perforList[i].thumbnail);
+							
+							$("#resTable tbody").append($("#format01 table tbody").html());
+						}
+							
+						
+						//$("#resTable tbody .dutyName").on("click",function(){fnDetail($(this).parent().find(".hpid").val());});
+					}else{
+						navigator.notification.alert(alertNoData,null,alertTitle);
+					}
+					$(document.body).hideLoading();
+				},
+				error: function(){
+					globalData = null;
+					globalSeq = 1;
+					$(document.body).hideLoading();
+					navigator.notification.alert(alertNetwork,null,alertTitle);
+				}
+			});
+	        
+	    }
+	});
+	
+	$(document).on("click","#resTable tbody .title",function(){fnDetail($(this).parent().find(".seq").val());});
+	
+	var globalData = null;
+	var globalSeq = 1;
+	var globalTotalCount = 0;
+	var callApi = "data02";
+	
+	function fnSearch(){
+		
+		var resname = "msgBody";
+		var dataObj = new Object();
+		dataObj.callApi = callApi;
+		dataObj.cPage = "1";
+		dataObj.place = $("#place").val();
+		dataObj.keyword = $("#keyword").val();
+		
+		//history 등록
+		if ($("#place").val() != "" || $("#keyword").val() != ""){
+    		var histObj = new Object();
+            histObj.call_api = callApi;
+            histObj.data = new Array();
+            var arrTemp = [histObj.call_api, 1, "place", $("#place").val(), $("#place").val()];
+            histObj.data.push(arrTemp);
+            arrTemp = [histObj.call_api, 2, "keyword", $("#keyword").val(), $("#keyword").val()];
+            histObj.data.push(arrTemp);
+          
+            webdb.insertNextData(histObj);
+        }
+		
+		$("#resTable tbody tr").remove();
+		$(document.body).showLoading();
+		$.ajax({
+			url: dataUrl,
+			method : 'POST',
+			data: dataObj,
+			dataType : "jsonp",
+			jsonp : "callback",
+			success: function(data){
+				globalData = data;
+				globalSeq = 1;
+				if (data[resname].perforList != null){
+					
+					if (!$.isArray(data[resname].perforList)){
+						bakData = data[resname].perforList;
+						data[resname].perforList = new Array();
+						data[resname].perforList[0] = bakData;
+					}
+					
+					$("#totalCnt").text("("+data[resname].totalCount+")");
+					globalTotalCount = data[resname].totalCount;
+					for (i=0;i<data[resname].perforList.length;i++){
+						//$("#format01 table tbody tr td:even").text("");
+						$("#format01 table tbody .no").text(i+1+ (Number(data[resname].cPage)-1) * 10 );
+					
+						$("#format01 table tbody .seq").val(data[resname].perforList[i].seq);
+						$("#format01 table tbody .title").text(data[resname].perforList[i].title).append('<button type="button" class="btn btn-default">상세내역</button>');
+						$("#format01 table tbody .startDate").text(data[resname].perforList[i].startDate);
+						$("#format01 table tbody .endDate").text(data[resname].perforList[i].endDate);
+						$("#format01 table tbody .place").text(data[resname].perforList[i].place);
+						$("#format01 table tbody .realmName").text(data[resname].perforList[i].realmName);
+						$("#format01 table tbody .area").text(data[resname].perforList[i].area);
+						$("#format01 table tbody .thumbnail").prop("src",data[resname].perforList[i].thumbnail);
+						
+						$("#resTable tbody").append($("#format01 table tbody").html());
+					}
+					
+					//$("#resTable tbody .title").on("click",function(){fnDetail($(this).parent().find(".seq").val());});
+				}else{
+					navigator.notification.alert(alertNoData,null,alertTitle);
+				}
+				$(document.body).hideLoading();
+			},
+			error: function(){
+				globalData = null;
+				globalSeq = 1;
+				$(document.body).hideLoading();
+				navigator.notification.alert(alertNetwork,null,alertTitle);
+			}
+		});
+
+		return;
+	}
+	
+	function fnDetail(seq){
+		
+		var resname = "msgBody";
+		var dataObj = new Object();
+		dataObj.callApi = "data02-01";
+		dataObj.seq = seq;
+		
+		$("#detailTable tbody tr").remove();
+		
+		$.ajax({
+			url: dataUrl,
+			method : 'POST',
+			data: dataObj,
+			dataType : "jsonp",
+			jsonp : "callback",
+			success: function(data){
+				if (data[resname].perforInfo != null){
+						
+						$("#format02 table tbody .title").text(data[resname].perforInfo.title);
+						$("#format02 table tbody .startDate").text(data[resname].perforInfo.startDate);
+						$("#format02 table tbody .endDate").text(data[resname].perforInfo.endDate);
+						$("#format02 table tbody .place").text(data[resname].perforInfo.place);
+						$("#format02 table tbody .realmName").text(data[resname].perforInfo.realmName);
+						$("#format02 table tbody .area").text(data[resname].perforInfo.area);
+						$("#format02 table tbody .subTitle").text(data[resname].perforInfo.subTitle);
+						$("#format02 table tbody .price").text(data[resname].perforInfo.price);
+						$("#format02 table tbody .contents1").html(data[resname].perforInfo.contents1);
+						$("#format02 table tbody .contents2").html(data[resname].perforInfo.contents2);
+						$("#format02 table tbody .url").html("<a href='"+data[resname].perforInfo.url+"'>"+data[resname].perforInfo.url+"</a>");
+						$("#format02 table tbody .phone").text(data[resname].perforInfo.phone);
+						$("#format02 table tbody .imgUrl").prop("src",data[resname].perforInfo.imgUrl);
+						$("#format02 table tbody .placeUrl").html("<a href='"+data[resname].perforInfo.placeUrl+"'>"+data[resname].perforInfo.placeUrl+"</a>");
+						$("#format02 table tbody .placeAddr").text(data[resname].perforInfo.placeAddr);
+
+						
+						$("#detailTable tbody").append($("#format02 table tbody").html());
+						
+						$("#tMain").hide();
+						$("#tDetail").show();
+					
+				}else{
+					navigator.notification.alert(alertNoData,null,alertTitle);
+				}
+				
+			},
+			error: function(){
+				navigator.notification.alert(alertNetwork,null,alertTitle);
+			}
+		});
+		
+		return;
+	}
+	
+	function fnBack(){
+		$("#tDetail").hide();
+		$("#tMain").show();
+	}
+	
+	</script>
+
+  </head>
+
+  <body>
+
+    <div id="includedContent">
+    </div>
+	
+    <div class="container-fluid">
+        <div class="panel">
+            <div class="panel-heading">
+                <h3 class="panel-title">공연전시</h3>
+            </div>
+            <div class="panel-body">
+				<div class="table-type1">
+					<table>
+						<colgroup>
+							<col width="30%" />
+							<col width="*" />
+						</colgroup>
+						<thead>
+							<tr>
+								<th>검색항목명</th>
+								<th>검색항목값</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<th>장소</th>
+								<td><input type="text" id="place" class="input" style="width:99%;" /></td>
+							</tr>
+							<tr>
+								<th>키워드</th>
+								<td><input type="text" id="keyword" class="input" style="width:99%;" /></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<p class="btn-sec">
+				    <button type="button" class="btn btn-default" onclick="fnHistory();">최근검색어</button>
+					<button type="button" class="btn btn-default on" onclick="fnSearch();">검색</button>
+				</p>
+            </div>
+        </div>
+		<div id="tMain" class="panel">
+            <div class="panel-heading">
+                <h3 class="panel-title">응답결과 <span id="totalCnt"></span></h3>
+            </div>
+            <div class="panel-body">
+				<div class="table-type1">
+					<table id="resTable">
+						<colgroup>
+							<col width="10%" />
+							<col width="30%" />
+							<col width="*" />
+						</colgroup>
+						<thead>
+							<tr>
+								<th>No.</th>
+								<th>응답명</th>
+								<th>응답값</th>
+							</tr>
+						</thead>
+						<tbody>
+							
+						</tbody>
+					</table>
+				</div>
+            </div>
+        </div>
+        
+        <div id="tDetail" class="panel" style="display:none;">
+            <div class="panel-heading">
+                <h3 class="panel-title">응답결과
+                	<span align="right">
+					<button type="button" class="btn btn-default" onclick="fnBack();">뒤로</button>
+					</span>
+                </h3>
+            </div>
+            <div class="panel-body">
+				<div class="table-type1">
+					<table id="detailTable">
+						<colgroup>
+							<col width="30%" />
+							<col width="*" />
+						</colgroup>
+						<thead>
+							<tr>
+								<th>응답명</th>
+								<th>응답값</th>
+							</tr>
+						</thead>
+						<tbody>
+							
+						</tbody>
+					</table>
+				</div>
+            </div>
+        </div>
+
+    </div> <!-- /container -->
+	
+	<div id="format01" style="display:none;">
+		<table>
+			<tbody>
+				<tr>
+					<td align="right" rowspan='7' class="no">1</td>
+					<td>제목
+						<input type="hidden" class="seq" />
+					</td>
+					<td class="title">
+						<button type="button" class="btn btn-default">상세내역</button>
+					</td>
+				</tr>
+				<tr>
+					<td>시작일</td>
+					<td class="startDate"></td>
+				</tr>
+				<tr>
+					<td>마감일</td>
+					<td class="endDate"></td>
+				</tr>
+				<tr>
+					<td>장소</td>
+					<td class="place"></td>
+				</tr>
+				<tr>
+					<td>분류명</td>
+					<td class="realmName"></td>
+				</tr>
+				<tr>
+					<td>지역</td>
+					<td class="area"></td>
+				</tr>
+				<tr>
+					<td>썸네일</td>
+					<td><img class="thumbnail" src="" width="90%"/></td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	
+	<div id="format02" style="display:none;">
+		<table>
+			<tbody>
+				<tr>
+					<td>제목</td>
+					<td class="title">
+					</td>
+				</tr>
+				<tr>
+					<td>시작일</td>
+					<td class="startDate"></td>
+				</tr>
+				<tr>
+					<td>마감일</td>
+					<td class="endDate"></td>
+				</tr>
+				<tr>
+					<td>장소</td>
+					<td class="place"></td>
+				</tr>
+				<tr>
+					<td>분류명</td>
+					<td class="realmName"></td>
+				</tr>
+				<tr>
+					<td>지역</td>
+					<td class="area"></td>
+				</tr>
+				<tr>
+					<td>공연부제목</td>
+					<td class="subTitle"></td>
+				</tr>
+				<tr>
+					<td>티켓요금</td>
+					<td class="price"></td>
+				</tr>
+				<tr>
+					<td>내용1</td>
+					<td class="contents1"></td>
+				</tr>
+				<tr>
+					<td>내용2</td>
+					<td class="contents2"></td>
+				</tr>
+				<tr>
+					<td>관람URL</td>
+					<td class="url"></td>
+				</tr>
+				<tr>
+					<td>문의처</td>
+					<td class="phone"></td>
+				</tr>
+				<tr>
+					<td>이미지</td>
+					<td><img class="imgUrl" src="" width="70%"/></td>
+				</tr>
+				<tr>
+					<td>공연장URL</td>
+					<td class="placeUrl"></td>
+				</tr>
+				<tr>
+					<td>공연장 주소</td>
+					<td class="placeAddr"></td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	
+	<div id="historyList" class="col-sm-4" style="display:none;">
+      <div id="histListGroup" class="list-group">
+      </div>
+    </div>
+	<p id="back-top">
+		<a href="#top"><span></span></a>
+	</p>
+	
+	<!--footer class="footer">
+      <div class="container">
+        <p class="text-muted">footer 내용.....</p>
+      </div>
+    </footer-->
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    
+    <!-- Just to make our placeholder images work. Don't actually copy the next line! -->
+  </body>
+</html>

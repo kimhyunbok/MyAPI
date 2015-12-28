@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="utf-8">
+	<meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="my api">
+    <meta name="author" content="poppppp">
+    <link rel="icon" href="../favicon.ico">
+
+    <title>My API</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+	<link href="../css/jquery-ui.css" rel="stylesheet">
+	<link href="../css/dashboard.css" rel="stylesheet">
+    <link href="../css/theme.css" rel="stylesheet">
+	<link href="../css/showLoading.css" rel="stylesheet">
+	<style>
+	  
+    </style>
+	<!--link href="../css/sticky-footer.css" rel="stylesheet"-->
+
+    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
+	<script type="text/javascript" src="../cordova.js"></script>
+	<script type="text/javascript" src="../js/jquery-1.11.3.js"></script>
+	
+	<script type="text/javascript" src="../js/jquery.showLoading.min.js"></script>
+    <script type="text/javascript" src="../js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="../js/jquery-ui.js"></script>
+	<script type="text/javascript" src="../js/jQueryRotateCompressed.2.1.js"></script>
+	<script type="text/javascript">
+	
+	$(document).ready(function(){
+	  
+	    $("#includedContent").load("../include/header.html");
+	    //$("#test").text("30.111");
+	 // $("#needle").rotate(359.5333333);
+    });
+    
+    document.addEventListener("deviceready", onDeviceReady, false);
+    function onDeviceReady() {
+        onCompassLoad();
+    }
+
+    var fnHelp = function(){
+		navigator.notification.alert ("스마트폰의 compass기능을 활용하여 나침반을 활용합니다.",null,helpTitle);
+		//alert ("스마트폰의 compass기능을 활용하여 나침반을 활용합니다.");
+	};
+	
+	function onCompassLoad(){
+	    var options = {
+	        frequency : 200
+	    };
+	    navigator.compass.watchHeading(rotateNeedle,null,options);
+	}
+	
+	function rotateNeedle(degree){
+	    //alert('Heading: ' + degree.magneticHeading);
+	    $("#needle").rotate(360 - degree.magneticHeading);
+	    $("#test").text(360 - degree.magneticHeading);
+	}
+	
+	</script>
+  </head>
+
+  <body>
+
+    <div id="includedContent">
+    </div>
+
+    <div class="container-fluid">
+		<div class="panel">
+            <div class="panel-heading">
+                <h3 class="panel-title">나침반</h3>
+            </div>
+            <div align="center" style="width:100%;overflow:hidden">
+                <img id="needle" src="../img/compass.png" style="width:100%;height:auto"  />
+            </div>
+        </div>
+        
+        <p id="test"></p>
+        
+    </div> <!-- /container -->
+	
+	
+
+	<!--footer class="footer">
+      <div class="container">
+        <p class="text-muted">footer 내용.....</p>
+      </div>
+    </footer-->
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    
+    <!-- Just to make our placeholder images work. Don't actually copy the next line! -->
+  </body>
+</html>

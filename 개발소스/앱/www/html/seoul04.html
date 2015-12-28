@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="utf-8">
+	<meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="my api">
+    <meta name="author" content="poppppp">
+    <link rel="icon" href="../favicon.ico">
+
+    <title>My API</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="../css/jquery-ui.css" rel="stylesheet">
+	<link href="../css/dashboard.css" rel="stylesheet">
+    <link href="../css/theme.css" rel="stylesheet">
+    <link href="../css/showLoading.css" rel="stylesheet">
+	<!--link href="./css/sticky-footer.css" rel="stylesheet"-->
+
+    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
+    <script type="text/javascript" src="../cordova.js"></script>
+	<script type="text/javascript" src="../js/jquery-1.11.3.js"></script>
+	<script type="text/javascript" src="../js/jquery-ui.js"></script>
+	<script type="text/javascript" src="../js/jquery.showLoading.min.js"></script>
+    <script type="text/javascript" src="../js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../js/common.js"></script>
+	
+	<script type="text/javascript">
+	
+	
+	$(document).ready(function(){
+		fnSearch();
+	});
+	
+	
+	
+	//$(document).on("click","#resTable tbody .title",function(){fnDetail($(this).parent().find(".seq").val());});
+	
+	var globalData = null;
+	var globalSeq = 1;
+	var globalTotalCount = 0;
+	var serviceName = "PublicParkingAvaliable";
+	var callApi = "seoul04";
+	
+	function fnSearch(){
+		
+		var dataObj = new Object();
+		dataObj.paramStr = serviceName+"/1/100/";
+		
+		$("#resTable tbody tr").remove();
+		$(document.body).showLoading();
+		$.ajax({
+			url: dataSeoulUrl,
+			method : 'POST',
+			data: dataObj,
+			dataType : "jsonp",
+			jsonp : "callback",
+			success: function(data){
+				globalData = data;
+				globalSeq = 1;
+				console.log(data);
+				if (data[serviceName] != null){
+					
+					if (!$.isArray(data[serviceName].row)){
+						bakData = data[serviceName].row;
+						data[serviceName].row = new Array();
+						data[serviceName].row[0] = bakData;
+					}
+					
+					$("#totalCnt").text("("+data[serviceName].list_total_count+")");
+					globalTotalCount = data[serviceName].list_total_count;
+					for (i=0;i<data[serviceName].row.length;i++){
+						$("#format01 table tbody tr td:even").text("");
+						$("#format01 table tbody .no").text(i+1+ (globalSeq-1) * 10 );
+					
+						$("#format01 table tbody .seq").val(i+1+ (globalSeq-1) * 10);
+						$("#format01 table tbody .PARK_NAME").text(data[serviceName].row[i].PARK_NAME);
+						$("#format01 table tbody .MAX_PARKING_CNT").text(data[serviceName].row[i].MAX_PARKING_CNT);
+						$("#format01 table tbody .PARKING_CNT").text(data[serviceName].row[i].PARKING_CNT);
+						$("#format01 table tbody .PARK_ADDRESS").text(data[serviceName].row[i].PARK_ADDRESS);
+						$("#format01 table tbody .TEL_NO").text(data[serviceName].row[i].TEL_NO);
+						$("#format01 table tbody .OWNER_NAME").text(data[serviceName].row[i].OWNER_NAME);
+						$("#format01 table tbody .COMPANY_NM").text(data[serviceName].row[i].COMPANY_NM);
+						
+						$("#resTable tbody").append($("#format01 table tbody").html());
+					}
+					
+				}else{
+					navigator.notification.alert(alertNoData,null,alertTitle);
+				}
+				$(document.body).hideLoading();
+			},
+			error: function(){
+				globalData = null;
+				globalSeq = 1;
+				globalTotalCount = 0;
+				$(document.body).hideLoading();
+				navigator.notification.alert(alertNetwork,null,alertTitle);
+			}
+		});
+
+		return;
+	}
+	
+	
+	</script>
+
+  </head>
+
+  <body>
+
+    <div id="includedContent">
+    </div>
+	
+    <div class="container-fluid">
+        <div class="panel">
+            <div class="panel-heading">
+                <h3 class="panel-title">공영주차장 주차 가능대수(서울시)</h3>
+            </div>
+        </div>
+		<div id="tMain" class="panel">
+            <div class="panel-heading">
+                <h3 class="panel-title">응답결과 <span id="totalCnt"></span></h3>
+            </div>
+            <div class="panel-body">
+				<div class="table-type1">
+					<table id="resTable">
+						<colgroup>
+							<col width="10%" />
+							<col width="30%" />
+							<col width="*" />
+						</colgroup>
+						<thead>
+							<tr>
+								<th>No.</th>
+								<th>응답명</th>
+								<th>응답값</th>
+							</tr>
+						</thead>
+						<tbody>
+							
+						</tbody>
+					</table>
+				</div>
+            </div>
+        </div>
+        
+
+    </div> <!-- /container -->
+	
+	<div id="format01" style="display:none;">
+		<table>
+			<tbody>
+				<tr>
+					<td align="right" rowspan='7' class="no">1</td>
+					<td>주차장명
+						<input type="hidden" class="seq" />
+					</td>
+					<td class="PARK_NAME">
+					</td>
+				</tr>
+				<tr>
+					<td>최대주차대수</td>
+					<td class="MAX_PARKING_CNT"></td>
+				</tr>
+				<tr>
+					<td>잔여주차가능대수</td>
+					<td class="PARKING_CNT"></td>
+				</tr>
+				<tr>
+					<td>주소</td>
+					<td class="PARK_ADDRESS"></td>
+				</tr>
+				<tr>
+					<td>전화</td>
+					<td class="TEL_NO"></td>
+				</tr>
+				<tr>
+					<td>대표명</td>
+					<td class="OWNER_NAME"></td>
+				</tr>
+				<tr>
+					<td>기관명</td>
+					<td class="COMPANY_NM"></td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	<p id="back-top">
+		<a href="#top"><span></span></a>
+	</p>
+	
+	<!--footer class="footer">
+      <div class="container">
+        <p class="text-muted">footer 내용.....</p>
+      </div>
+    </footer-->
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    
+    <!-- Just to make our placeholder images work. Don't actually copy the next line! -->
+
+  </body>
+</html>

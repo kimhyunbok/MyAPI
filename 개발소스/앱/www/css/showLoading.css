@@ -1,0 +1,158 @@
+.loading-indicator-overlay {
+	background-color: #FFFFFF;
+	opacity: 0.6;
+	filter: alpha(opacity = 60);
+}
+
+/* 나눔고딕 */
+@font-face {
+	font-family: 'Nanum';
+	font-style: normal;
+	font-weight: 400;
+	src: url(../fonts/NanumGothic-Regular.eot);
+	src: url(../fonts/NanumGothic-Regular.eot?#iefix) format('embedded-opentype'),
+	url(../fonts/NanumGothic-Regular.woff2) format('woff2'),
+	url(../fonts/NanumGothic-Regular.woff) format('woff'),
+	url(../fonts/NanumGothic-Regular.ttf) format('truetype');
+}
+/* 나눔고딕 Bold */
+@font-face {
+	font-family: 'NanumBold';
+	font-style: normal;
+	font-weight: 700;
+	src: url(../fonts/NanumGothic-Bold.eot);
+	src: url(../fonts/NanumGothic-Bold.eot?#iefix) format('embedded-opentype'),
+	url(../fonts/NanumGothic-Bold.woff2) format('woff2'),
+	url(../fonts/NanumGothic-Bold.woff) format('woff'),
+	url(../fonts/NanumGothic-Bold.ttf) format('truetype');
+}
+@font-face {
+    font-family: 'NanumExbold';
+    font-style: normal;
+    font-weight: 800;
+    src: url(../fonts/NanumGothic-ExtraBold.eot);
+    src: url(../fonts/NanumGothic-ExtraBold.eot?#iefix) format('embedded-opentype'),
+    url(../fonts/NanumGothic-ExtraBold.woff2) format('woff2'),
+    url(../fonts/NanumGothic-ExtraBold.woff) format('woff'),
+    url(../fonts/NanumGothic-ExtraBold.ttf) format('truetype');
+}
+
+/* common */
+body{background-color:#f5f5f5}
+.pdrn{padding-right:0 !important}
+.pdln{padding-left:0 !important}
+
+/* bootstrap */
+.navbar{padding:0;min-height:inherit}
+.navbar .container-fluid{position:relative;margin:0 !important;padding:0}
+.navbar .navbar-header{position:relative;margin:0;padding:2.5% 0}
+.navbar .navbar-header:before,
+.navbar .navbar-header:aafter{display:block;content:'';clear:both;line-height:0}
+.navbar .navbar-brand{position:relative;width:23%;top:5%;margin:0;padding:0;height:inherit;margin-left:15px !important;z-index:2}
+.navbar .navbar-brand img{width:100%;height:auto}
+.navbar .btn-toggle{position:absolute;width:100%;text-align:right;top:16%;right:15px;z-index:1}
+.navbar .navbar-toggle{float:none;margin:0;vertical-align:top}
+.navbar .navbar-toggle.help{float:none;margin:0;padding:2.6% 3%;border: 1px solid #333333;border-radius:4px;font-size:0;}
+.navbar .navbar-toggle.help .icon-help{display:inline-block;background:url(../img/ico-help.png) no-repeat 0 0;width:13px;height:14px;background-size:100% 100%;vertical-align:top;margin:0;line-height:0}
+.container-fluid{padding-right:0;padding-left:0}
+.panel{border:0;border-radius:0;box-shadow:none;padding-bottom:1%;background-color:#f5f5f5}
+.panel-heading{border-radius:0;padding:0 3%;background:url(../img/bg-title.gif) repeat 0 0 #393939;}
+
+.panel-title{font-family:"NanumBold";font-size:200%;color:#fff;padding:1.6% 0 2% 0%}
+.panel-title img{margin-right:3%;height:100%;vertical-align:middle}
+.panel-title button.btn{font-size:50%}
+.panel-title button.btn-default{box-shadow:1px 1px 1px #333}
+.panel-title button.btn-default:hover,
+.panel-title button.btn-default:focus,
+.panel-title button.btn-default:active{box-shadow:1px 1px 1px #333}
+.panel-public .panel-title{background:url(../img/ico-public.png) no-repeat 0 0;background-size:auto 100%;padding-left:13%}
+.panel-seoul .panel-title{background:url(../img/ico-seoul.png) no-repeat 0 0;background-size:auto 100%;padding-left:11%}
+.panel-daum .panel-title{background:url(../img/ico-daum.png) no-repeat 0 0;background-size:auto 100%;padding-left:18%}
+.panel-sk .panel-title{background:url(../img/ico-skt.png) no-repeat 0 0;background-size:auto 100%;padding-left:18%}
+
+/* main */
+.apiList { list-style-type: none; margin: 0; padding: 0; width: 100%; }
+.apiList li {float:left;width:48%; margin:1% 1%; padding:0;text-align: center}
+.apiList li button,
+.apiList li span{width:100%;padding:4% 0;font-size:100%;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+
+/* table */
+.table-type1{border:1px solid #dcdcdc;box-shadow:1px 1px 2px #c5c5c5}
+.table-type1 table{width:100%;table-layout:fixed;border:0;border-collapse:collapse;border-spacing:0;background-color:#fff}
+.table-type1 table thead th{padding:1.5% 0;background-color:#73b0f1;border-left:1px solid #fff;text-align:center;color:#fff;font-family:"NanumBold"}
+.table-type1 table tbody td,
+.table-type1 table tbody th{padding:1%;font-size:100%}
+.table-type1 table tbody th{text-align:center;padding:1% 2%}
+.table-type1 table tbody tr:first-child td,
+.table-type1 table tbody tr:first-child th{padding-top:3%}
+.table-type1 table tbody tr:last-child td,
+.table-type1 table tbody tr:last-child th{padding-bottom:3%}
+.table-type1 table th:first-child{border-left:0}
+
+#resTable td,#detailTable td{border-bottom:1px solid #dcdcdc;border-left:1px solid #dcdcdc}
+#resTable tbody tr td.no,#detailTable tbody tr td.no{text-align:center}
+#resTable tbody tr:nth-child(even),#detailTable tbody tr:nth-child(even){background:#f5f5f5}
+
+
+/* jquery.ui */
+.input{height:auto;padding:0.5em 1em;line-height:100%;vertical-align:middle}
+.select{height:auto;padding:0.3em 0}
+.ui-selectmenu-button{width:99% !important;vertical-align:middle}
+button.btn{font-size:100%;vertical-align:middle}
+
+/* btn */
+.btn-sec{margin-top:2%;text-align:right}
+.btn-default.on{color:#fff;background-color:#308be8;border-color:#308be8}
+
+body:before{position:fixed;top:0;left:0;display:inline-block;display:none;content:'max-width : 985px';line-height:30px;text-align:center;color:#000;background:#ff0;padding:0 10px;z-index:2000}
+
+/* ----- 720~ ----- */
+@media only screen and (max-width : 2000px) {
+body:before{content:'720~'}
+body{font-size:230%}
+}
+/* ----- 849~ ----- */
+@media (min-width: 850px) {
+body:before{content:'850~'}
+.navbar-collapse {position:absolute;top:25%;right:15px}
+}
+@media only screen and (max-width: 849px) {
+body:before{content:'~850'}
+.navbar-collapse{float:none;width:100%;padding:0;border:0;overflow:hidden;margin:0 !important}
+.in.navbar-collapse{overflow:hidden}
+.navbar-inverse .navbar-nav{margin:0}
+.navbar-inverse .navbar-nav > li{border-bottom:1px solid #454545}
+.navbar-inverse .navbar-nav > li > a{padding:2% 5%;display:block;background:url(../img/bu-gnb.gif) no-repeat 3% center #282828;color:#c8c8c8 !important}
+.navbar-inverse .navbar-nav > li > a:active,
+.navbar-inverse .navbar-nav > li > a:focus,
+.navbar-inverse .navbar-nav > li > a:hover{background:url(../img/bu-gnb-active.gif) no-repeat 3% center #ffffff;color:#308be8 !important;font-family:"NanumBold"}
+
+}
+/* ----- 640~ ----- */
+@media only screen and (max-width : 719px) {
+body:before{content:'640~'}
+body{font-size:200%}
+}
+/* ----- 480~ ----- */
+@media only screen and (max-width : 639px) {
+body:before{content:'480~'}
+body{font-size:160%}
+}
+/* ----- 320~ ----- */
+@media only screen and (max-width : 479px) {
+body:before{content:'320~'}
+body{font-size:150%}
+.select{height:auto;padding:0.2em 0}
+.apiList li{float:none;width:98%;margin:2% 0}
+.apiList li button,
+.apiList li span{padding:2% 0}
+.navbar .btn-toggle{top:13%}
+.navbar-toggle .icon-bar {  display: block;  width: 13px;  height: 1px;  border-radius: 1px;  box-shadow:1px 1px 1px #000;}
+.navbar-toggle .icon-bar + .icon-bar {  margin-top: 3px}
+.navbar .navbar-toggle.help .icon-help{height:9px;width:8px}
+}
+/* ----- 0~ ----- */
+@media only screen and (max-width : 319px) {
+body:before{content:'0~'}
+body{font-size:100%}
+}

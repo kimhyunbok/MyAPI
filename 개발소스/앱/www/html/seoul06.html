@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="utf-8">
+	<meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="my api">
+    <meta name="author" content="poppppp">
+    <link rel="icon" href="../favicon.ico">
+
+    <title>My API</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="../css/jquery-ui.css" rel="stylesheet">
+	<link href="../css/dashboard.css" rel="stylesheet">
+    <link href="../css/theme.css" rel="stylesheet">
+    <link href="../css/showLoading.css" rel="stylesheet">
+	<!--link href="./css/sticky-footer.css" rel="stylesheet"-->
+
+    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
+    <script type="text/javascript" src="../cordova.js"></script>
+	<script type="text/javascript" src="../js/jquery-1.11.3.js"></script>
+	<script type="text/javascript" src="../js/jquery-ui.js"></script>
+	<script type="text/javascript" src="../js/jquery.showLoading.min.js"></script>
+    <script type="text/javascript" src="../js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../js/common.js"></script>
+	
+	<script type="text/javascript">
+	
+	$(document).ready(function(){
+		
+	});
+	
+	$(window).scroll(function() {
+	    if ($(window).scrollTop() == $(document).height() - $(window).height()) {
+	        if ((globalSeq)*10 >= globalTotalCount ){
+	        	return;
+	        }
+	        if (!$("#tMain").is(":visible")){
+	        	return;
+	        }
+	        
+	        $(document.body).showLoading();
+	        globalSeq++;
+	        
+			for (i=(globalSeq-1)*10;i<globalData[serviceName].row.length;i++){
+				if (i >= globalSeq*10 ){
+					break;
+				}
+				$("#format01 table tbody tr td:even").text("");
+				$("#format01 table tbody .no").text(i+1);
+			
+				$("#format01 table tbody .seq").val(globalData[serviceName].row[i].SH_ID);
+				$("#format01 table tbody .SH_NAME").text(globalData[serviceName].row[i].SH_NAME).append('<button type="button" class="btn btn-default">상세가격</button>');
+				$("#format01 table tbody .INDUTY_CODE_SE_NAME").text(globalData[serviceName].row[i].INDUTY_CODE_SE_NAME);
+				$("#format01 table tbody .SH_ADDR").text(globalData[serviceName].row[i].SH_ADDR).append('<button type="button" class="btn btn-xs btn-info">지도</button>');
+				$("#format01 table tbody .SH_PHONE").text(globalData[serviceName].row[i].SH_PHONE);
+				$("#format01 table tbody .SH_WAY").text(globalData[serviceName].row[i].SH_WAY);
+				$("#format01 table tbody .SH_INFO").text(globalData[serviceName].row[i].SH_INFO);
+				$("#format01 table tbody .SH_PRIDE").text(globalData[serviceName].row[i].SH_PRIDE);
+				$("#format01 table tbody .SH_RCMN").text(globalData[serviceName].row[i].SH_RCMN);
+				
+				if (globalData[serviceName].row[i].SH_PHOTO!=null && globalData[serviceName].row[i].SH_PHOTO!="" && globalData[serviceName].row[i].SH_PHOTO.indexOf("http") > -1 ){
+					$("#format01 table tbody .SH_PHOTO").html('<img src="'+globalData[serviceName].row[i].SH_PHOTO+'" width="90%"/>');
+				}
+				
+				$("#resTable tbody").append($("#format01 table tbody").html());
+			}
+			$(document.body).hideLoading();
+	        
+	    }
+	});
+	
+	$(document).on("click","#resTable tbody .SH_NAME",function(){fnDetail($(this).parent().find(".seq").val());});
+	$(document).on("click","#resTable tbody .SH_ADDR",function(){fnMap($(this).text().replace("지도","") ); });
+	
+	var globalData = null;
+	var globalSeq = 1;
+	var globalTotalCount = 0;
+	var serviceName = "ListPriceModelStoreService";
+	var callApi = "seoul06";
+	
+	function fnSearch(){
+		
+		var dataObj = new Object();
+		dataObj.paramStr = serviceName+"/1/1000/"+$("#p1").val()+"/";
+		dataObj.serviceName = serviceName;
+		if ($("#SH_NAME").val() != ""){
+			dataObj["SH_NAME"] = $("#SH_NAME").val();	
+		}
+		if ($("#SH_ADDR").val() != ""){
+			dataObj["SH_ADDR"] = $("#SH_ADDR").val();	
+		}
+		
+		//history 등록
+		if ($("#p1").val() != "" || $("#SH_NAME").val() != "" || $("#SH_ADDR").val() != ""){
+    		var histObj = new Object();
+            histObj.call_api = callApi;
+            histObj.data = new Array();
+            var arrTemp = [histObj.call_api, 1, "p1", $("#p1").val(), $("#p1 option:selected").text()];
+            histObj.data.push(arrTemp);
+            arrTemp = [histObj.call_api, 2, "SH_NAME", $("#SH_NAME").val(), $("#SH_NAME").val()];
+            histObj.data.push(arrTemp);
+            arrTemp = [histObj.call_api, 2, "SH_ADDR", $("#SH_ADDR").val(), $("#SH_ADDR").val()];
+            histObj.data.push(arrTemp);
+          
+            webdb.insertNextData(histObj);
+        }
+		
+		$("#resTable tbody tr").remove();
+		$(document.body).showLoading();
+		$.ajax({
+			url: dataSeoulUrl,
+			method : 'POST',
+			data: dataObj,
+			dataType : "jsonp",
+			jsonp : "callback",
+			success: function(data){
+				globalData = data;
+				globalSeq = 1;
+				//console.log(data);
+				
+				if (globalData[serviceName] != null){
+					
+					if (!$.isArray(globalData[serviceName].row)){
+						bakData = globalData[serviceName].row;
+						globalData[serviceName].row = new Array();
+						globalData[serviceName].row[0] = bakData;
+					}
+					
+					$("#totalCnt").text("("+globalData[serviceName].row.length+")");
+					globalTotalCount = globalData[serviceName].row.length;
+					for (i=0;i<globalData[serviceName].row.length;i++){
+						if (i >= globalSeq*10 ){
+							break;
+						}
+						$("#format01 table tbody tr td:even").text("");
+						$("#format01 table tbody .no").text(i+1+ (globalSeq-1) * 10 );
+					
+						$("#format01 table tbody .seq").val(globalData[serviceName].row[i].SH_ID);
+						$("#format01 table tbody .SH_NAME").text(globalData[serviceName].row[i].SH_NAME).append('<button type="button" class="btn btn-default">상세가격</button>');
+						$("#format01 table tbody .INDUTY_CODE_SE_NAME").text(globalData[serviceName].row[i].INDUTY_CODE_SE_NAME);
+						$("#format01 table tbody .SH_ADDR").text(globalData[serviceName].row[i].SH_ADDR).append('<button type="button" class="btn btn-xs btn-info">지도</button>');
+						$("#format01 table tbody .SH_PHONE").text(globalData[serviceName].row[i].SH_PHONE);
+						$("#format01 table tbody .SH_WAY").text(globalData[serviceName].row[i].SH_WAY);
+						$("#format01 table tbody .SH_INFO").text(globalData[serviceName].row[i].SH_INFO);
+						$("#format01 table tbody .SH_PRIDE").text(globalData[serviceName].row[i].SH_PRIDE);
+						$("#format01 table tbody .SH_RCMN").text(globalData[serviceName].row[i].SH_RCMN);
+						
+						if (globalData[serviceName].row[i].SH_PHOTO!=null && globalData[serviceName].row[i].SH_PHOTO!="" && globalData[serviceName].row[i].SH_PHOTO.indexOf("http") > -1 ){
+							$("#format01 table tbody .SH_PHOTO").html('<img src="'+globalData[serviceName].row[i].SH_PHOTO+'" width="90%"/>');
+						}
+						$("#resTable tbody").append($("#format01 table tbody").html());
+					}
+					
+				}else{
+					navigator.notification.alert(alertNoData,null,alertTitle);
+				}
+				$(document.body).hideLoading();
+			},
+			error: function(){
+				globalData = null;
+				globalSeq = 1;
+				globalTotalCount = 0;
+				$(document.body).hideLoading();
+				navigator.notification.alert(alertNetwork,null,alertTitle);
+			}
+		});
+
+		return;
+	}
+	
+	function fnDetail(seq){
+		var subService = "ListPriceModelStoreProductService";
+		var dataObj = new Object();
+		dataObj.paramStr = subService+"/1/100/"+seq+"/";
+		dataObj.serviceName = subService;
+		
+		$("#detailTable tbody tr").remove();
+		$(document.body).showLoading();
+		$.ajax({
+			url: dataSeoulUrl,
+			method : 'POST',
+			data: dataObj,
+			dataType : "jsonp",
+			jsonp : "callback",
+			success: function(data){
+				//console.log(data);
+				
+				if (data[subService] != null){
+					
+					if (!$.isArray(data[subService].row)){
+						bakData = data[subService].row;
+						data[subService].row = new Array();
+						data[subService].row[0] = bakData;
+					}
+					
+					for (i=0;i<data[subService].row.length;i++){
+
+						$("#format02 table tbody tr td:odd").text("");
+					
+						$("#format02 table tbody .IM_NAME").text(data[subService].row[i].IM_NAME);
+						$("#format02 table tbody .IM_PRICE").text(data[subService].row[i].IM_PRICE);
+						
+						$("#detailTable tbody").append($("#format02 table tbody").html());
+					}
+					$("#tMain").hide();
+					$("#tDetail").show();
+				}else{
+					navigator.notification.alert(alertNoData,null,alertTitle);
+				}
+				$(document.body).hideLoading();
+			},
+			error: function(){
+				$(document.body).hideLoading();
+				navigator.notification.alert(alertNetwork,null,alertTitle);
+			}
+		});
+
+		return;
+	}
+	
+	function fnBack(){
+		$("#tDetail").hide();
+		$("#tMain").show();
+	}
+	
+	function fnMap(addr){
+		cordova.InAppBrowser.open('http://m.map.daum.net/actions/searchView?q='+encodeURIComponent(addr)+"#!/MMLMRU,QNMRQQW/map/place", '_self', 'location=no'); 
+	}
+	
+	</script>
+
+  </head>
+
+  <body>
+
+    <div id="includedContent">
+    </div>
+	
+    <div class="container-fluid">
+        <div class="panel">
+            <div class="panel-heading">
+                <h3 class="panel-title">가격안정모범업소(서울시)</h3>
+            </div>
+            <div class="panel-body">
+				<div class="table-type1">
+					<table>
+						<colgroup>
+							<col width="30%" />
+							<col width="*" />
+						</colgroup>
+						<thead>
+							<tr>
+								<th>검색항목명</th>
+								<th>검색항목값</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<th>업소분류</th>
+								<td>
+									<select id="p1" class="select" style="width:99%;">
+										<option value="">-선택-</option>
+										<option value="001">한식</option>
+										<option value="002">중식</option>
+										<option value="003">경양식,일식</option>
+										<option value="004">기타외식업(다방,패스트푸드등)</option>
+										<option value="005">이 미용업</option>
+										<option value="006">목욕업</option>
+										<option value="007">세탁업</option>
+										<option value="008">숙박업(호텔,여관)</option>
+										<option value="009">영화관람</option>
+										<option value="010">VTR대여</option>
+										<option value="011">노래방</option>
+										<option value="012">수영장/볼링장/당구장/골프연습장</option>
+										<option value="013">기타서비스업종</option>
+									</select>
+								</td>
+							</tr>
+							<tr>
+								<th>업소명</th>
+								<td>
+									<input type="text" id="SH_NAME" class="input" style="width:99%;" value="" />
+								</td>
+							</tr>
+							<tr>
+								<th>업소주소</th>
+								<td>
+									<input type="text" id="SH_ADDR" class="input" style="width:99%;" value="" />
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<p class="btn-sec">
+				    <button type="button" class="btn btn-default" onclick="fnHistory();">최근검색어</button>
+					<button type="button" class="btn btn-default on" onclick="fnSearch();">검색</button>
+				</p>
+            </div>
+        </div>
+		<div id="tMain" class="panel">
+            <div class="panel-heading">
+                <h3 class="panel-title">응답결과 <span id="totalCnt"></span></h3>
+            </div>
+            <div class="panel-body">
+				<div class="table-type1">
+					<table id="resTable">
+						<colgroup>
+							<col width="10%" />
+							<col width="30%" />
+							<col width="*" />
+						</colgroup>
+						<thead>
+							<tr>
+								<th>No.</th>
+								<th>응답명</th>
+								<th>응답값</th>
+							</tr>
+						</thead>
+						<tbody>
+							
+						</tbody>
+					</table>
+				</div>
+            </div>
+        </div>
+        
+        <div id="tDetail" class="panel" style="display:none;">
+            <div class="panel-heading">
+                <h3 class="panel-title">응답결과
+                	<span align="right">
+					<button type="button" class="btn btn-default" onclick="fnBack();">뒤로</button>
+					</span>
+                </h3>
+            </div>
+            <div class="panel-body">
+                <div class="table-type1">
+                    <table id="detailTable">
+    					<colgroup>
+    						<col width="30%" />
+    						<col width="*" />
+    					</colgroup>
+    				    <thead>
+    				        <tr>
+    							<th>응답명</th>
+    							<th>응답값</th>
+    						</tr>
+    					</thead>
+    					<tbody>
+    						
+    					</tbody>
+    			    </table>
+			    </div>
+            </div>
+        </div>
+        
+
+    </div> <!-- /container -->
+	
+	<div id="format01" style="display:none;">
+		<table>
+			<tbody>
+				<tr>
+					<td align="right" rowspan='9' class="no">1</td>
+					<td>업소명
+						<input type="hidden" class="seq" />
+					</td>
+					<td class="SH_NAME">
+					</td>
+				</tr>
+				<tr>
+					<td>업소분류</td>
+					<td class="INDUTY_CODE_SE_NAME"></td>
+				</tr>
+				<tr>
+					<td>업소 주소</td>
+					<td class="SH_ADDR"></td>
+				</tr>
+				<tr>
+					<td>업소 전화번호</td>
+					<td class="SH_PHONE"></td>
+				</tr>
+				<tr>
+					<td>찾아오시는 길</td>
+					<td class="SH_WAY"></td>
+				</tr>
+				<tr>
+					<td>업소정보</td>
+					<td class="SH_INFO"></td>
+				</tr>
+				<tr>
+					<td>자랑거리</td>
+					<td class="SH_PRIDE"></td>
+				</tr>
+				<tr>
+					<td>추천수</td>
+					<td class="SH_RCMN"></td>
+				</tr>
+				<tr>
+					<td>업소 사진</td>
+					<td class="SH_PHOTO"></td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	
+	<div id="format02" style="display:none;">
+		<table>
+			<tbody>
+				<tr>
+					<td>상품명</td>
+					<td class="IM_NAME">
+					</td>
+				</tr>
+				<tr>
+					<td>상품가격(원)</td>
+					<td class="IM_PRICE">
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	
+	<div id="historyList" class="col-sm-4" style="display:none;">
+      <div id="histListGroup" class="list-group">
+      </div>
+    </div>
+	<p id="back-top">
+		<a href="#top"><span></span></a>
+	</p>
+	
+	<!--footer class="footer">
+      <div class="container">
+        <p class="text-muted">footer 내용.....</p>
+      </div>
+    </footer-->
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    
+    <!-- Just to make our placeholder images work. Don't actually copy the next line! -->
+
+  </body>
+</html>

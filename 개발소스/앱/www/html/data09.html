@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="utf-8">
+	<meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="my api">
+    <meta name="author" content="poppppp">
+    <link rel="icon" href="../favicon.ico">
+
+    <title>My API</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="../css/jquery-ui.css" rel="stylesheet">
+	<link href="../css/dashboard.css" rel="stylesheet">
+    <link href="../css/theme.css" rel="stylesheet">
+    <link href="../css/showLoading.css" rel="stylesheet">
+	<!--link href="./css/sticky-footer.css" rel="stylesheet"-->
+
+    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
+    <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
+    <script type="text/javascript" src="../cordova.js"></script>
+	<script type="text/javascript" src="../js/jquery-1.11.3.js"></script>
+	<script type="text/javascript" src="../js/jquery-ui.js"></script>
+	<script type="text/javascript" src="../js/jquery.showLoading.min.js"></script>
+    <script type="text/javascript" src="../js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../js/common.js"></script>
+	
+	<script type="text/javascript">
+	
+	
+	$(document).ready(function(){
+		
+	});
+	
+	$(window).scroll(function() {
+	    if ($(window).scrollTop() == $(document).height() - $(window).height()) {
+	        if ((globalSeq-1)*10 > globalData.length){
+	        	return;
+	        }
+	        $(document.body).showLoading();
+	        globalSeq++;
+	        
+	        for (i=(globalSeq-1)*10;i<globalData.length;i++){
+				if (i >= globalSeq*10 ){
+					break;
+				}
+				$("#format01 table tbody tr td:even").text("");
+				$("#format01 table tbody .no").text(i+1);
+			
+				$("#format01 table tbody .id").val(i+1);
+				$("#format01 table tbody .r1").text(globalData[i]["명칭"]);
+				$("#format01 table tbody .r2").text(globalData[i]["소재지도로명주소"]);
+				$("#format01 table tbody .r3").text(globalData[i]["소재지지번주소"]);
+				
+				$("#resTable tbody").append($("#format01 table tbody").html());
+			}
+	        
+			$(document.body).hideLoading();
+	    }
+	});
+	
+	var globalData = null;
+	var globalSeq = 1;
+	var callApi = "data09";
+	
+	function fnSearch(){
+		var resname = "body";
+		var dataObj = new Object();
+		dataObj.callApi = callApi;
+		if ($("#p1").val() != ""){
+			dataObj["명칭"] = $("#p1").val();	
+		}
+		if ($("#p2").val() != ""){
+			dataObj["소재지도로명주소"] = $("#p2").val();	
+		}
+		if ($("#p3").val() != ""){
+			dataObj["소재지지번주소"] = $("#p3").val();	
+		}
+		
+		//history 등록
+		if ($("#p1").val() != "" || $("#p2").val() != ""
+		    || $("#p3").val() != "" ){
+    		var histObj = new Object();
+            histObj.call_api = callApi;
+            histObj.data = new Array();
+            for (var i=1; i <= 3; i++) {
+                arrTemp = [histObj.call_api, i, "p"+i, $("#p"+i).val(), $("#p"+i).val()];
+                histObj.data.push(arrTemp);
+            }
+          
+            webdb.insertNextData(histObj);
+        }
+		
+		$("#resTable tbody tr").remove();
+		$(document.body).showLoading();
+		$.ajax({
+			url: dataJsonUrl,
+			method : 'POST',
+			data: dataObj,
+			dataType : "jsonp",
+			jsonp : "callback",
+			success: function(data){
+				globalData = data;
+				globalSeq = 1;
+				//console.log(data);
+				if (globalData.length > 0){
+						$("#totalCnt").text("("+globalData.length+")");
+						for (i=0;i<globalData.length;i++){
+							if (i >= globalSeq*10 ){
+								break;
+							}
+							$("#format01 table tbody tr td:even").text("");
+							$("#format01 table tbody .no").text(i+1);
+						
+							$("#format01 table tbody .id").val(i+1);
+							$("#format01 table tbody .r1").text(globalData[i]["명칭"]);
+							$("#format01 table tbody .r2").text(globalData[i]["소재지도로명주소"]);
+							$("#format01 table tbody .r3").text(globalData[i]["소재지지번주소"]);
+							
+							$("#resTable tbody").append($("#format01 table tbody").html());
+						}
+					
+				}else{
+					navigator.notification.alert(alertNoData,null,alertTitle);
+				}
+				$(document.body).hideLoading();
+			},
+			error: function(){
+				globalData = null;
+				globalSeq = 1;
+				$(document.body).hideLoading();
+				navigator.notification.alert(alertNetwork,null,alertTitle);
+			}
+		});
+
+		return;
+	}
+	
+	</script>
+
+  </head>
+
+  <body>
+
+    <div id="includedContent">
+    </div>
+	
+    <div class="container-fluid">
+        <div class="panel">
+            <div class="panel-heading">
+                <h3 class="panel-title">전국 공중화장실</h3>
+            </div>
+            <div class="panel-body">
+				<div class="table-type1">
+					<table>
+						<colgroup>
+							<col width="30%" />
+							<col width="*" />
+						</colgroup>
+						<thead>
+							<tr>
+								<th>검색항목명</th>
+								<th>검색항목값</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<th>명칭</th>
+								<td>
+									<input type="text" id="p1" class="input" style="width:99%;" value="" />
+								</td>
+							</tr>
+							<tr>
+								<th>도로명주소</th>
+								<td>
+									<input type="text" id="p2" class="input" style="width:99%;" value="" />
+								</td>
+							</tr>
+							<tr>
+								<th>지번주소</th>
+								<td>
+									<input type="text" id="p3" class="input" style="width:99%;" value="" />
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<p class="btn-sec">
+				    <button type="button" class="btn btn-default" onclick="fnHistory();">최근검색어</button>
+					<button type="button" class="btn btn-default on" onclick="fnSearch();">검색</button>
+				</p>
+            </div>
+        </div>
+        
+		<div id="tMain" class="panel">
+            <div class="panel-heading">
+                <h3 class="panel-title">응답결과 <span id="totalCnt"></span></h3>
+            </div>
+            <div class="panel-body">
+				<div class="table-type1">
+					<table id="resTable">
+						<colgroup>
+							<col width="10%" />
+							<col width="30%" />
+							<col width="*" />
+						</colgroup>
+						<thead>
+							<tr>
+								<th>No.</th>
+								<th>응답명</th>
+								<th>응답값</th>
+							</tr>
+						</thead>
+						<tbody>
+							
+						</tbody>
+					</table>
+				</div>
+            </div>
+        </div>
+
+    </div> <!-- /container -->
+	
+	<div id="format01" style="display:none;">
+		<table>
+			<tbody>
+				<tr>
+					<td align="right" rowspan='3' class="no">1</td>
+					<td>명칭
+						<input type="hidden" class="id" />
+					</td>
+					<td class="r1">
+					</td>
+				</tr>
+				<tr>
+					<td>도로명주소</td>
+					<td class="r2"></td>
+				</tr>
+				<tr>
+					<td>지번주소</td>
+					<td class="r3"></td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	
+	<div id="historyList" class="col-sm-4" style="display:none;">
+      <div id="histListGroup" class="list-group">
+      </div>
+    </div>
+    <p id="back-top">
+		<a href="#top"><span></span></a>
+	</p>
+	
+	<!--footer class="footer">
+      <div class="container">
+        <p class="text-muted">footer 내용.....</p>
+      </div>
+    </footer-->
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    
+    <!-- Just to make our placeholder images work. Don't actually copy the next line! -->
+
+  </body>
+</html>

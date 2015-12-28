@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="utf-8">
+	<meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="my api">
+    <meta name="author" content="poppppp">
+    <link rel="icon" href="../favicon.ico">
+
+    <title>My API</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="../css/jquery-ui.css" rel="stylesheet">
+	<link href="../css/dashboard.css" rel="stylesheet">
+    <link href="../css/theme.css" rel="stylesheet">
+    <link href="../css/showLoading.css" rel="stylesheet">
+	<!--link href="./css/sticky-footer.css" rel="stylesheet"-->
+
+    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
+    <script type="text/javascript" src="../cordova.js"></script>
+	<script type="text/javascript" src="../js/jquery-1.11.3.js"></script>
+	<script type="text/javascript" src="../js/jquery-ui.js"></script>
+	<script type="text/javascript" src="../js/jquery.showLoading.min.js"></script>
+    <script type="text/javascript" src="../js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../js/common.js"></script>
+	
+	<script type="text/javascript">
+	
+	
+	$(document).ready(function(){
+		
+	});
+	
+	$(window).scroll(function() {
+	    if ($(window).scrollTop() == $(document).height() - $(window).height()) {
+	        if ((globalSeq)*10 >= globalTotalCount ){
+	        	return;
+	        }
+	        
+	        $(document.body).showLoading();
+	        globalSeq++;
+	        
+			var dataObj = new Object();
+			dataObj.paramStr = serviceName+"/"+(globalSeq*10-9)+"/"+(globalSeq*10)+"/"+$("#p1").val()+"/";
+			
+			$.ajax({
+				url: dataSeoulUrl,
+				method : 'POST',
+				data: dataObj,
+				dataType : "jsonp",
+				jsonp : "callback",
+				success: function(data){
+					
+					if (data[serviceName] != null){
+						if (!$.isArray(data[serviceName].row)){
+							bakData = data[serviceName].row;
+							data[serviceName].row = new Array();
+							data[serviceName].row[0] = bakData;
+						}
+							
+						for (i=0;i<data[serviceName].row.length;i++){
+							globalData[serviceName].row.push(data[serviceName].row[i]);
+							$("#format01 table tbody tr td:even").text("");
+							$("#format01 table tbody .no").text(i+1+ (globalSeq-1) * 10);
+						
+							$("#format01 table tbody .seq").val(data[serviceName].row[i].ID);
+							$("#format01 table tbody .GET_NAME").text(data[serviceName].row[i].GET_NAME);
+							//$("#format01 table tbody .URL").text(data[serviceName].row[i].URL);
+							if (data[serviceName].row[i].URL!=null && data[serviceName].row[i].URL!=""){
+								$("#format01 table tbody .URL").html('<button type="button" onclick="location.href=\''+data[serviceName].row[i].URL+'\'" class="btn btn-default">원문링크</button>');
+							}
+							$("#format01 table tbody .TITLE").text(data[serviceName].row[i].TITLE);
+							$("#format01 table tbody .GET_DATE").text(data[serviceName].row[i].GET_DATE);
+							$("#format01 table tbody .TAKE_PLACE").text(data[serviceName].row[i].TAKE_PLACE);
+							$("#format01 table tbody .CONTACT").text(data[serviceName].row[i].CONTACT);
+							$("#format01 table tbody .CATE").text(data[serviceName].row[i].CATE);
+							$("#format01 table tbody .GET_POSITION").text(data[serviceName].row[i].GET_POSITION);
+							$("#format01 table tbody .GET_PLACE").text(data[serviceName].row[i].GET_PLACE);
+							$("#format01 table tbody .GET_THING").html(data[serviceName].row[i].GET_THING);
+							$("#format01 table tbody .STATUS").text(data[serviceName].row[i].STATUS);
+							codeNm = "";
+							switch (data[serviceName].row[i].CODE){
+								case "b1" : codeNm = "버스";break;
+								case "b2" : codeNm = "마을버스";break;
+								case "s1" : codeNm = "지하철(1~4호선)";break;
+								case "s2" : codeNm = "지하철(5~8호선)";break;
+								case "s3" : codeNm = "코레일";break;
+								case "s4" : codeNm = "지하철(9호선)";break;
+								case "t1" : codeNm = "법인택시";break;
+								case "t2" : codeNm = "개인택시";break;
+							}
+							$("#format01 table tbody .CODE").text(codeNm);
+							if (data[serviceName].row[i].IMAGE_URL!=null && data[serviceName].row[i].IMAGE_URL!="" && data[serviceName].row[i].IMAGE_URL.indexOf("http") > -1 ){
+								$("#format01 table tbody .IMAGE_URL").html('<img src="'+data[serviceName].row[i].IMAGE_URL+'" width="90%"/>');
+							}
+							
+							$("#resTable tbody").append($("#format01 table tbody").html());
+						}
+							
+						
+						//$("#resTable tbody .dutyName").on("click",function(){fnDetail($(this).parent().find(".hpid").val());});
+					}else{
+						navigator.notification.alert(alertNoData,null,alertTitle);
+					}
+					$(document.body).hideLoading();
+				},
+				error: function(){
+					globalData = null;
+					globalSeq = 1;
+					globalTotalCount = 0;
+					$(document.body).hideLoading();
+					navigator.notification.alert(alertNetwork,null,alertTitle);
+				}
+			});
+	        
+	    }
+	});
+	
+	//$(document).on("click","#resTable tbody .title",function(){fnDetail($(this).parent().find(".seq").val());});
+	
+	var globalData = null;
+	var globalSeq = 1;
+	var globalTotalCount = 0;
+	var serviceName = "ListLostArticleService";
+	var callApi = "seoul01";
+	
+	function fnSearch(){
+		
+		var dataObj = new Object();
+		dataObj.paramStr = serviceName+"/1/10/"+$("#p1").val()+"/";
+		
+		//history 등록
+		if ($("#p1").val() != "" ){
+    		var histObj = new Object();
+            histObj.call_api = callApi;
+            histObj.data = new Array();
+            var arrTemp = [histObj.call_api, 1, "p1", $("#p1").val(), $("#p1 option:selected").text()];
+            histObj.data.push(arrTemp);
+          
+            webdb.insertNextData(histObj);
+        }
+		
+		$("#resTable tbody tr").remove();
+		$(document.body).showLoading();
+		$.ajax({
+			url: dataSeoulUrl,
+			method : 'POST',
+			data: dataObj,
+			dataType : "jsonp",
+			jsonp : "callback",
+			success: function(data){
+				globalData = data;
+				globalSeq = 1;
+				console.log(data);
+				if (data[serviceName] != null){
+					
+					if (!$.isArray(data[serviceName].row)){
+						bakData = data[serviceName].row;
+						data[serviceName].row = new Array();
+						data[serviceName].row[0] = bakData;
+					}
+					
+					$("#totalCnt").text("("+data[serviceName].list_total_count+")");
+					globalTotalCount = data[serviceName].list_total_count;
+					for (i=0;i<data[serviceName].row.length;i++){
+						$("#format01 table tbody tr td:even").text("");
+						$("#format01 table tbody .no").text(i+1+ (globalSeq-1) * 10 );
+					
+						$("#format01 table tbody .seq").val(data[serviceName].row[i].ID);
+						$("#format01 table tbody .GET_NAME").text(data[serviceName].row[i].GET_NAME);
+						//$("#format01 table tbody .URL").text(data[serviceName].row[i].URL);
+						if (data[serviceName].row[i].URL!=null && data[serviceName].row[i].URL!=""){
+							$("#format01 table tbody .URL").html('<button type="button" onclick="location.href=\''+data[serviceName].row[i].URL+'\'" class="btn btn-default">원문링크</button>');
+						}
+						$("#format01 table tbody .TITLE").text(data[serviceName].row[i].TITLE);
+						$("#format01 table tbody .GET_DATE").text(data[serviceName].row[i].GET_DATE);
+						$("#format01 table tbody .TAKE_PLACE").text(data[serviceName].row[i].TAKE_PLACE);
+						$("#format01 table tbody .CONTACT").text(data[serviceName].row[i].CONTACT);
+						$("#format01 table tbody .CATE").text(data[serviceName].row[i].CATE);
+						$("#format01 table tbody .GET_POSITION").text(data[serviceName].row[i].GET_POSITION);
+						$("#format01 table tbody .GET_PLACE").text(data[serviceName].row[i].GET_PLACE);
+						$("#format01 table tbody .GET_THING").html(data[serviceName].row[i].GET_THING);
+						$("#format01 table tbody .STATUS").text(data[serviceName].row[i].STATUS);
+						codeNm = "";
+						switch (data[serviceName].row[i].CODE){
+							case "b1" : codeNm = "버스";break;
+							case "b2" : codeNm = "마을버스";break;
+							case "s1" : codeNm = "지하철(1~4호선)";break;
+							case "s2" : codeNm = "지하철(5~8호선)";break;
+							case "s3" : codeNm = "코레일";break;
+							case "s4" : codeNm = "지하철(9호선)";break;
+							case "t1" : codeNm = "법인택시";break;
+							case "t2" : codeNm = "개인택시";break;
+						}
+						$("#format01 table tbody .CODE").text(codeNm);
+						if (data[serviceName].row[i].IMAGE_URL!=null && data[serviceName].row[i].IMAGE_URL!="" && data[serviceName].row[i].IMAGE_URL.indexOf("http") > -1 ){
+							$("#format01 table tbody .IMAGE_URL").html('<img src="'+data[serviceName].row[i].IMAGE_URL+'" width="90%"/>');
+						}
+						
+						$("#resTable tbody").append($("#format01 table tbody").html());
+					}
+					
+				}else{
+					navigator.notification.alert(alertNoData,null,alertTitle);
+				}
+				$(document.body).hideLoading();
+			},
+			error: function(){
+				globalData = null;
+				globalSeq = 1;
+				globalTotalCount = 0;
+				$(document.body).hideLoading();
+				navigator.notification.alert(alertNetwork,null,alertTitle);
+			}
+		});
+
+		return;
+	}
+	
+	
+	</script>
+
+  </head>
+
+  <body>
+
+    <div id="includedContent">
+    </div>
+	
+    <div class="container-fluid">
+        <div class="panel">
+            <div class="panel-heading">
+                <h3 class="panel-title">대중교통 분실물(서울시)</h3>
+            </div>
+            <div class="panel-body">
+				<div class="table-type1">
+					<table>
+						<colgroup>
+							<col width="30%" />
+							<col width="*" />
+						</colgroup>
+						<thead>
+							<tr>
+								<th>검색항목명</th>
+								<th>검색항목값</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<th>습득물품코드</th>
+								<td>
+									<select id="p1" class="select" style="width:99%;">
+										<option value="b1">버스</option>
+										<option value="b2">마을버스</option>
+										<option value="s1">지하철(1~4호선)</option>
+										<option value="s2">지하철(5~8호선)</option>
+										<option value="s3">코레일</option>
+										<option value="s4">지하철(9호선)</option>
+										<option value="t1">법인택시</option>
+										<option value="t2">개인택시</option>
+									</select>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<p class="btn-sec">
+				    <button type="button" class="btn btn-default" onclick="fnHistory();">최근검색어</button>
+					<button type="button" class="btn btn-default on" onclick="fnSearch();">검색</button>
+				</p>
+            </div>
+        </div>
+		<div id="tMain" class="panel">
+            <div class="panel-heading">
+                <h3 class="panel-title">응답결과 <span id="totalCnt"></span></h3>
+            </div>
+            <div class="panel-body">
+                <div class="table-type1">
+                    <table id="resTable">
+    					<colgroup>
+    						<col width="10%" />
+    						<col width="30%" />
+    						<col width="*" />
+    					</colgroup>
+    				    <thead>
+    				        <tr>
+    							<th>No.</th>
+    							<th>응답명</th>
+    							<th>응답값</th>
+    						</tr>
+    					</thead>
+    					<tbody>
+    						
+    					</tbody>
+    			    </table>
+			    </div>
+            </div>
+        </div>
+        
+
+    </div> <!-- /container -->
+	
+	<div id="format01" style="display:none;">
+		<table>
+			<tbody>
+				<tr>
+					<td align="right" rowspan='13' class="no">1</td>
+					<td>습득물품명
+						<input type="hidden" class="seq" />
+					</td>
+					<td class="GET_NAME">
+					</td>
+				</tr>
+				<tr>
+					<td>원문링크주소(지하철)</td>
+					<td class="URL"></td>
+				</tr>
+				<tr>
+					<td>습득물분류</td>
+					<td class="TITLE"></td>
+				</tr>
+				<tr>
+					<td>습득일자</td>
+					<td class="GET_DATE"></td>
+				</tr>
+				<tr>
+					<td>수령가능장소</td>
+					<td class="TAKE_PLACE"></td>
+				</tr>
+				<tr>
+					<td>수령가능장소연락처</td>
+					<td class="CONTACT"></td>
+				</tr>
+				<tr>
+					<td>습득물분류</td>
+					<td class="CATE"></td>
+				</tr>
+				<tr>
+					<td>습득위치_회사명</td>
+					<td class="GET_POSITION"></td>
+				</tr>
+				<tr>
+					<td>습득위치(지하철)</td>
+					<td class="GET_PLACE"></td>
+				</tr>
+				<tr>
+					<td>습득물품_상세</td>
+					<td class="GET_THING"></td>
+				</tr>
+				<tr>
+					<td>분실물상태</td>
+					<td class="STATUS"></td>
+				</tr>
+				<tr>
+					<td>습득물품코드</td>
+					<td class="CODE"></td>
+				</tr>
+				<tr>
+					<td>이미지</td>
+					<td class="IMAGE_URL"></td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	
+	<div id="historyList" class="col-sm-4" style="display:none;">
+      <div id="histListGroup" class="list-group">
+      </div>
+    </div>
+    <p id="back-top">
+		<a href="#top"><span></span></a>
+	</p>
+	
+	<!--footer class="footer">
+      <div class="container">
+        <p class="text-muted">footer 내용.....</p>
+      </div>
+    </footer-->
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    
+    <!-- Just to make our placeholder images work. Don't actually copy the next line! -->
+
+  </body>
+</html>
